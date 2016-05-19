@@ -1,0 +1,55 @@
+apply plugin: 'java'
+
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral();
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    compileJava.options.encoding = 'UTF-8'
+
+    group = 'scheduler'
+    version = '1.0-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+        maven {
+            url "http://repo.mycompany.com/maven2"
+        }
+    }
+
+    configurations {
+        provided
+    }
+
+    sourceSets {
+        main.compileClasspath += configurations.provided
+        test.compileClasspath += configurations.provided
+        test.runtimeClasspath += configurations.provided
+    }
+
+    dependencies {
+        compile 'com.google.guava:guava:17.0'
+        compile 'org.slf4j:slf4j-api:1.7.12'
+        compile 'com.google.code.findbugs:jsr305:2.0.3'
+
+        // todo switch to provided whe release
+        compile 'org.springframework:spring-beans:4.1.6.RELEASE'
+        compile 'org.springframework:spring-context:4.1.6.RELEASE'
+
+        testCompile 'junit:junit:4.12'
+        testCompile 'org.slf4j:jcl-over-slf4j:1.7.12'
+        testCompile 'ch.qos.logback:logback-classic:1.1.2'
+    }
+
+    configurations {
+        all*.exclude group: 'commons-logging'
+    }
+}
+
