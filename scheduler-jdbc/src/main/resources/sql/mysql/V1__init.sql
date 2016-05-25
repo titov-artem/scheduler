@@ -56,6 +56,7 @@ CREATE TABLE sch_history_run (
   host          VARCHAR(128)                      DEFAULT NULL,
   acquired_time DATETIME                          DEFAULT NULL,
   start_time    DATETIME                          DEFAULT NULL,
+  ping_time     DATETIME                          DEFAULT NULL,
   end_time      DATETIME                          DEFAULT NULL,
   message       VARCHAR(512)                      DEFAULT NULL,
   version       INTEGER      NOT NULL             DEFAULT 0,
