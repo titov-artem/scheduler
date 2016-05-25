@@ -5,8 +5,8 @@ import javax.annotation.Nullable;
 import java.time.Instant;
 
 /**
- * Содержит информацию только о времени запуска и позволяет мастеру определить, когда задачу надо
- * поставить в очередь на исполнение
+ * Contains information about run time. With this params RunMaster will determine
+ * when it is necessary to put this task into execution queue
  */
 public interface SchedulingParams {
 

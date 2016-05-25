@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Pick tasks in their order. If met
+ * Pick tasks in their order.
  */
 public class SimpleInOrderTaskPicker implements TaskPicker {
 

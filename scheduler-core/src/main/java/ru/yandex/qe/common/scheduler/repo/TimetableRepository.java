@@ -17,12 +17,15 @@ public interface TimetableRepository {
     void save(SchedulingParams params);
 
     /**
-     * Try update params. Update will be performed if and only if task version is equals to repository version.
-     * Invocation will return updated object if version matches, actual object otherwise, and null if there are
-     * no any scheduling params for such task in the repository
+     * Try update params. Update will be performed if and only if task version is
+     * equals to repository version.
      *
      * @param task task to update
-     * @return
+     * @return <ul>
+     * <li>updated object if version matches</li>
+     * <li>actual object if version not matches</li>
+     * <li>{@code null} if there are no any scheduling params for such task</li>
+     * </ul>
      */
     @Nullable
     SchedulingParams tryUpdate(SchedulingParams task);

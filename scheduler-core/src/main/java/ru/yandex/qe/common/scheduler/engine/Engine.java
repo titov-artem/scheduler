@@ -1,15 +1,15 @@
 package ru.yandex.qe.common.scheduler.engine;
 
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Required;
+import ru.yandex.qe.common.scheduler.engine.EngineState.Capacity;
 import ru.yandex.qe.common.scheduler.engine.executor.lookup.ExecutorLookupService;
 import ru.yandex.qe.common.scheduler.model.EngineDescriptor;
 import ru.yandex.qe.common.scheduler.model.Run;
 import ru.yandex.qe.common.scheduler.model.RunImpl;
-import ru.yandex.qe.common.scheduler.model.TaskParams;
+import ru.yandex.qe.common.scheduler.model.TaskArgs;
 import ru.yandex.qe.common.scheduler.repo.ActiveRunsRepository;
 import ru.yandex.qe.common.scheduler.repo.TaskParamsRepository;
 import ru.yandex.qe.common.scheduler.utils.LocalTaskScheduler;
@@ -21,20 +21,20 @@ import javax.annotation.PreDestroy;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.util.stream.Collectors.toList;
 
+/**
+ * Engine starts and execute runs in scheduler.
+ * <p>
+ * In main loop it fix failed to start runs
+ */
 public class Engine {
     /**
      * Time interval that is given to run master to create task run and store it into repository
@@ -57,14 +57,26 @@ public class Engine {
     private long pickPeriod = DEFAULT_PICK_PERIOD;
 
     /* internal fields */
-    private State state;
+    /**
+     * Engine state
+     */
+    private EngineState state;
+    /**
+     * Executor service for task's runs execution
+     */
     private ExecutorService executorService;
+    /**
+     * Engine main loop scheduler
+     */
     private LocalTaskScheduler localTaskScheduler = new LocalTaskScheduler(1);
+    /**
+     * Main loop lock
+     */
     private Lock runLock = new ReentrantLock();
 
     @PostConstruct
     public void start() {
-        state = new State(threadCount, capacity);
+        state = new EngineState(threadCount, capacity);
         executorService = Executors.newFixedThreadPool(threadCount);
         localTaskScheduler.scheduleWithFixRate(getClass().getSimpleName(), this::run, 0, pickPeriod, TimeUnit.SECONDS);
     }
@@ -98,11 +110,12 @@ public class Engine {
     private void runUnsafe() {
         pingRunning();
 
-        if (state.freeThreads.get() == 0) {
+        Capacity capacity = state.getCapacity();
+        if (capacity.freeThreads == 0) {
             log.trace("No free scheduler engine threads");
             return;
         }
-        if (state.freeCapacity.get() == 0) {
+        if (capacity.freeCapacity == 0) {
             log.trace("No free scheduler engine capacity");
             return;
         }
@@ -110,6 +123,7 @@ public class Engine {
         log.trace("Restoring acquired runs");
         restoreAcquiredRuns();
         restoreHangedRuns();
+
         List<Run> runs = activeRunsRepository.getRuns();
         if (runs.isEmpty()) {
             log.trace("No any task in the queue");
@@ -121,7 +135,7 @@ public class Engine {
                 .filter(r -> r.getStatus() == Run.Status.PENDING)
                 .filter(r -> r.getHost() == null)
                 .collect(toList());
-        List<Run> runsToStart = taskPicker.pickRuns(pendingRuns, state.toDescriptor());
+        List<Run> runsToStart = taskPicker.pickRuns(pendingRuns, toDescriptor(state));
         if (runsToStart.isEmpty()) {
             log.trace("No appropriate tasks to start");
             return;
@@ -129,18 +143,14 @@ public class Engine {
         log.trace("Found {} tasks to start", runsToStart.size());
 
         for (final Run run : runsToStart) {
-            if (state.freeThreads.get() == 0) {
-                log.trace("Free threads ended. No more task can be started");
-                break;
-            }
-            if (state.freeCapacity.get() < run.getEngineRequirements().getWeight()) {
-                log.trace("Engine capacity ended. No more task can be started");
-                break;
-            }
             try {
-                state.occupy(run);
-                if (!tryStart(run)) {
-                    state.free(run);
+                if (state.occupy(run)) {
+                    if (!tryStart(run)) {
+                        state.free(run);
+                    }
+                } else {
+                    log.trace("Engine capacity ended: {}. No more task can be started", state);
+                    break;
                 }
             } catch (Throwable e) {
                 state.free(run);
@@ -156,16 +166,23 @@ public class Engine {
     }
 
     private void pingRunning() {
+        List<RunFuture> toRemove = new ArrayList<>();
         for (Iterator<RunFuture> iterator = state.runningTasks.iterator(); iterator.hasNext(); ) {
             RunFuture r = iterator.next();
             if (!r.future.isDone()) {
                 activeRunsRepository.ping(r.runId, Instant.now(clock));
                 continue;
             }
-            iterator.remove();
+            toRemove.add(r);
+        }
+        if (!toRemove.isEmpty()) {
+            state.runningTasks.removeAll(toRemove);
         }
     }
 
+    /**
+     * Remove host and acquired time for runs with expired START_INTERVAL
+     */
     private void restoreAcquiredRuns() {
         Instant now = Instant.now(clock);
         activeRunsRepository.getRuns().stream()
@@ -205,9 +222,9 @@ public class Engine {
             fail(acquiredRun, "No executor found");
             return false;
         }
-        Optional<TaskParams> taskParams = taskParamsRepository.get(acquiredRun.getTaskId());
-        log.trace("Starting run {} with params {}", acquiredRun, taskParams);
-        Context context = new Context(acquiredRun, taskParams.orElse(null));
+        Optional<TaskArgs> taskArgs = taskParamsRepository.get(acquiredRun.getTaskId());
+        log.trace("Starting run {} with params {}", acquiredRun, taskArgs);
+        Context context = new Context(acquiredRun, taskArgs.orElse(null));
         start(acquiredRun, executor.get(), context);
         return true;
     }
@@ -262,6 +279,98 @@ public class Engine {
         );
     }
 
+    private EngineDescriptor toDescriptor(EngineState state) {
+        Capacity capacity = state.getCapacity();
+        return new EngineDescriptor() {
+            @Override
+            public int getMaxCapacity() {
+                return Engine.this.capacity;
+            }
+
+            @Override
+            public int getFreeCapacity() {
+                return capacity.freeCapacity;
+            }
+
+            @Nonnull
+            @Override
+            public String getService() {
+                return Engine.this.service;
+            }
+
+            @Nonnull
+            @Override
+            public String getHost() {
+                return Engine.this.host;
+            }
+        };
+    }
+
+    private final class Runner implements Runnable {
+
+        private final Run r;
+        private final Runnable executor;
+        private final Context context;
+
+        Runner(Run r, Runnable executor, Context context) {
+            this.r = r;
+            this.executor = executor;
+            this.context = context;
+        }
+
+        @Override
+        public void run() {
+            executeTask();
+            Engine.this.touch();
+        }
+
+        private void executeTask() {
+            log.trace("Set status RUNNING to run {}", r.getRunId());
+            Run run = tryRunning(r);
+            if (run == null) {
+                log.trace("No run with id {} for task {} found!", r.getRunId(), r.getTaskId());
+                return;
+            }
+            if (!Objects.equals(run.getHost(), host)) {
+                log.trace("Host {} lost lock on run {}", host, run.getRunId());
+                return;
+            }
+            if (run.getStatus() != Run.Status.RUNNING) {
+                log.error("Failed to mark run with id {} as RUNNING", r.getRunId());
+                return;
+            }
+            Context.set(context);
+            try {
+                log.trace("Starting run {}", run.getRunId());
+                executor.run();
+                Run completed = complete(run, context.getMessage());
+                if (completed == null) {
+                    log.error("No run with id {} found!", r.getRunId());
+                    return;
+                }
+                if (completed.getStatus() != Run.Status.COMPLETE) {
+                    log.error("Failed to mark run with id {} as COMPLETED", r.getRunId());
+                }
+            } catch (Throwable e) {
+                String userMessage = context.getMessage();
+                String reason = String.format("Run %d of task %s failed with %s: %s",
+                        run.getRunId(), run.getTaskId(),
+                        e instanceof Error ? "ERROR" : "exception", e.getMessage());
+                reason = userMessage == null ? reason : userMessage + "; " + reason;
+                if (e instanceof Error) {
+                    log.error(MarkerFactory.getMarker("FATAL"), reason, e);
+                    fail(run, reason);
+                    throw e;
+                }
+                log.error(reason, e);
+                fail(run, reason);
+            } finally {
+                Context.clear();
+                state.free(run);
+            }
+        }
+    }
+
     /* Setters */
     @Required
     public void setActiveRunsRepository(ActiveRunsRepository activeRunsRepository) {
@@ -309,134 +418,5 @@ public class Engine {
 
     public void setPickPeriod(long pickPeriod) {
         this.pickPeriod = pickPeriod;
-    }
-
-    private static final class RunFuture {
-        public final long runId;
-        public final Future<?> future;
-
-        private RunFuture(long runId, Future<?> future) {
-            this.runId = runId;
-            this.future = future;
-        }
-    }
-
-    private final class State {
-        public final AtomicInteger freeThreads;
-        public final AtomicInteger freeCapacity;
-        public final List<RunFuture> runningTasks = Lists.newArrayList();
-
-        public State(int totalThreads, int totalCapacity) {
-            this.freeThreads = new AtomicInteger(totalThreads);
-            this.freeCapacity = new AtomicInteger(totalCapacity);
-        }
-
-        public void occupy(Run run) {
-            int leftThread = freeThreads.decrementAndGet();
-            int leftWeight = freeCapacity.addAndGet(-run.getEngineRequirements().getWeight());
-            if (leftThread < 0) {
-                log.error(MarkerFactory.getMarker("FATAL"), "Left less than 0 threads in scheduler engine!");
-            }
-            if (leftWeight < 0) {
-                log.error(MarkerFactory.getMarker("FATAL"), "Left less than 0 capacity in scheduler engine!");
-            }
-        }
-
-        public void free(Run run) {
-            int leftThread = freeThreads.incrementAndGet();
-            int leftWeight = freeCapacity.addAndGet(run.getEngineRequirements().getWeight());
-            if (leftThread > threadCount) {
-                log.error(MarkerFactory.getMarker("FATAL"), "Left greater than max threads in scheduler engine!");
-            }
-            if (leftWeight > capacity) {
-                log.error(MarkerFactory.getMarker("FATAL"), "Left greater than max capacity in scheduler engine!");
-            }
-        }
-
-        public EngineDescriptor toDescriptor() {
-            int freeCapacity = State.this.freeCapacity.get();
-            return new EngineDescriptor() {
-                @Override
-                public int getMaxCapacity() {
-                    return capacity;
-                }
-
-                @Override
-                public int getFreeCapacity() {
-                    return freeCapacity;
-                }
-
-                @Nonnull
-                @Override
-                public String getService() {
-                    return service;
-                }
-
-                @Nonnull
-                @Override
-                public String getHost() {
-                    return host;
-                }
-            };
-        }
-
-        @Override
-        public String toString() {
-            return String.format("State{%s threads, %s space}", freeThreads, freeCapacity);
-        }
-    }
-
-    private final class Runner implements Runnable {
-
-        private final Run r;
-        private final Runnable executor;
-        private final Context context;
-
-        Runner(Run r, Runnable executor, Context context) {
-            this.r = r;
-            this.executor = executor;
-            this.context = context;
-        }
-
-        @Override
-        public void run() {
-            executeTask();
-            Engine.this.touch();
-        }
-
-        private void executeTask() {
-            log.trace("Set status RUNNING to run {}", r.getRunId());
-            Run run = tryRunning(r);
-            if (run == null) {
-                log.trace("No run with id {} for task {} found!", r.getRunId(), r.getTaskId());
-                return;
-            }
-            if (!Objects.equals(run.getHost(), host)) {
-                log.trace("Host {} lost lock on run {}", host, run.getRunId());
-                return;
-            }
-            Context.set(context);
-            try {
-                log.trace("Starting run {}", run.getRunId());
-                executor.run();
-                complete(run, context.getMessage());
-            } catch (Throwable e) {
-                String userMessage = context.getMessage();
-                String reason = String.format("Run %d of task %s failed with %s: %s",
-                        run.getRunId(), run.getTaskId(),
-                        e instanceof Error ? "ERROR" : "exception", e.getMessage());
-                reason = userMessage == null ? reason : userMessage + "; " + reason;
-                if (e instanceof Error) {
-                    log.error(MarkerFactory.getMarker("FATAL"), reason, e);
-                    fail(run, reason);
-                    throw e;
-                }
-                log.error(reason, e);
-                fail(run, reason);
-            } finally {
-                Context.clear();
-                state.free(run);
-            }
-        }
     }
 }

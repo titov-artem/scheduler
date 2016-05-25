@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 import java.time.Instant;
 
 /**
- * Отдельный запуск задачи. Создаётся с пустым хостом и статусом PENDING
+ * Single run of the task. Must be created with empty host and status PENDING
  */
 public interface Run {
 

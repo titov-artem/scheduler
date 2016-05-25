@@ -65,8 +65,18 @@ public class RunMaster implements Runnable {
     private String host;
 
     /* Internal fields */
+    /**
+     * Main loop scheduler
+     */
     private LocalTaskScheduler localTaskScheduler;
+    /**
+     * Service for touching local engines immediately after runs creation
+     * to speed up runs execution
+     */
     private ExecutorService engineTouchingService;
+    /**
+     * Main loop lock
+     */
     private Lock runLock = new ReentrantLock();
     private AtomicBoolean started = new AtomicBoolean();
 

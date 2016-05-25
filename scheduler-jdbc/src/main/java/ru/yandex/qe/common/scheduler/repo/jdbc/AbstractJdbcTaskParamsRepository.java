@@ -4,8 +4,8 @@ import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.springframework.beans.factory.annotation.Required;
 import org.springframework.jdbc.core.JdbcOperations;
-import ru.yandex.qe.common.scheduler.model.TaskParams;
-import ru.yandex.qe.common.scheduler.model.TaskParamsImpl;
+import ru.yandex.qe.common.scheduler.model.TaskArgs;
+import ru.yandex.qe.common.scheduler.model.TaskArgsImpl;
 import ru.yandex.qe.common.scheduler.repo.TaskParamsRepository;
 
 import java.util.ArrayList;
@@ -19,9 +19,9 @@ public abstract class AbstractJdbcTaskParamsRepository implements TaskParamsRepo
     private JdbcOperations jdbcOperations;
 
     @Override
-    public Optional<TaskParams> get(String taskId) {
+    public Optional<TaskArgs> get(String taskId) {
         Query query = DSL().select().from(TASK_PARAMS_TABLE).where(TASK_ID.eq(taskId));
-        TaskParamsImpl.Builder builder = TaskParamsImpl.builder();
+        TaskArgsImpl.Builder builder = TaskArgsImpl.builder();
         jdbcOperations.query(query.getSQL(),
                 rs -> {
                     builder.append(rs.getString(NAME.getName()), rs.getString(VALUE.getName()));
@@ -31,11 +31,11 @@ public abstract class AbstractJdbcTaskParamsRepository implements TaskParamsRepo
     }
 
     @Override
-    public void save(String taskId, TaskParams taskParams) {
+    public void save(String taskId, TaskArgs taskArgs) {
         List<Object[]> params = new ArrayList<>();
         String sql = null;
-        for (final String name : taskParams.getNames()) {
-            for (String value : taskParams.getAll(name)) {
+        for (final String name : taskArgs.getNames()) {
+            for (String value : taskArgs.getAll(name)) {
                 Query query = DSL().insertInto(TASK_PARAMS_TABLE)
                         .set(TASK_ID, taskId)
                         .set(NAME, name)

@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Params that will be passed to task when it will be executed
  */
-public interface TaskParams {
+public interface TaskArgs {
 
     Collection<String> getNames();
 

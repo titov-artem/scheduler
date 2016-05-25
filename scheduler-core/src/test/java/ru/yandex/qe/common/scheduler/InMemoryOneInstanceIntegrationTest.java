@@ -58,7 +58,7 @@ public class InMemoryOneInstanceIntegrationTest {
                     Integer.toString(i),
                     new EngineRequirementsImpl(i % 100, SimpleExecutor.class.getName(), "main")
             ));
-            taskParamsRepository.save(task.getId(), TaskParamsImpl.builder()
+            taskParamsRepository.save(task.getId(), TaskArgsImpl.builder()
                     .put("name", Integer.toString(i))
                     .build());
             timetableRepository.save(SchedulingParamsImpl.builder(task.getId(), SchedulingType.ONCE, null).build());
@@ -75,11 +75,11 @@ public class InMemoryOneInstanceIntegrationTest {
 
         @Override
         public void run() {
-            TaskParams taskParams = Context.get().getTaskParams();
+            TaskArgs taskArgs = Context.get().getTaskArgs();
             Run run = Context.get().getRun();
 
             System.out.printf("Task params %s were executed in run %d with task %s%n",
-                    taskParams.get("name"), run.getRunId(), run.getTaskId());
+                    taskArgs.get("name"), run.getRunId(), run.getTaskId());
         }
     }
 

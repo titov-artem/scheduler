@@ -10,11 +10,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class TaskParamsImpl implements TaskParams {
+public class TaskArgsImpl implements TaskArgs {
 
     private final ListMultimap<String, String> params;
 
-    private TaskParamsImpl(ListMultimap<String, String> params) {
+    private TaskArgsImpl(ListMultimap<String, String> params) {
         this.params = params;
     }
 
@@ -50,7 +50,7 @@ public class TaskParamsImpl implements TaskParams {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        TaskParamsImpl that = (TaskParamsImpl) o;
+        TaskArgsImpl that = (TaskArgsImpl) o;
         return Objects.equals(params, that.params);
     }
 
@@ -76,8 +76,8 @@ public class TaskParamsImpl implements TaskParams {
             return params.isEmpty();
         }
 
-        public TaskParams build() {
-            return new TaskParamsImpl(params);
+        public TaskArgs build() {
+            return new TaskArgsImpl(params);
         }
     }
 }

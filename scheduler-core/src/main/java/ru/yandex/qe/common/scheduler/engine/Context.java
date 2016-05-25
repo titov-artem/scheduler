@@ -1,19 +1,19 @@
 package ru.yandex.qe.common.scheduler.engine;
 
 import ru.yandex.qe.common.scheduler.model.Run;
-import ru.yandex.qe.common.scheduler.model.TaskParams;
+import ru.yandex.qe.common.scheduler.model.TaskArgs;
 
 public class Context {
 
     private static final ThreadLocal<Context> instance = new ThreadLocal<>();
 
     private final Run run;
-    private final TaskParams taskParams;
+    private final TaskArgs taskArgs;
     private String message;
 
-    Context(Run run, TaskParams taskParams) {
+    Context(Run run, TaskArgs taskArgs) {
         this.run = run;
-        this.taskParams = taskParams;
+        this.taskArgs = taskArgs;
     }
 
     public static Context get() {
@@ -32,8 +32,8 @@ public class Context {
         return run;
     }
 
-    public TaskParams getTaskParams() {
-        return taskParams;
+    public TaskArgs getTaskArgs() {
+        return taskArgs;
     }
 
     public String getMessage() {

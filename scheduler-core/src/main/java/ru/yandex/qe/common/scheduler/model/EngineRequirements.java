@@ -12,7 +12,6 @@ public interface EngineRequirements {
      */
     int getWeight();
 
-
     /**
      * To run task engine must have such executor. Availability of executor will be checked after picking
      * task on engine, so task can fail if all other requirements will be met, but executor will not be
