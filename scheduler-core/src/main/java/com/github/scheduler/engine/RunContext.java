@@ -3,24 +3,24 @@ package com.github.scheduler.engine;
 import com.github.scheduler.model.Run;
 import com.github.scheduler.model.TaskArgs;
 
-public class Context {
+public class RunContext {
 
-    private static final ThreadLocal<Context> instance = new ThreadLocal<>();
+    private static final ThreadLocal<RunContext> instance = new ThreadLocal<>();
 
     private final Run run;
     private final TaskArgs taskArgs;
     private String message;
 
-    Context(Run run, TaskArgs taskArgs) {
+    RunContext(Run run, TaskArgs taskArgs) {
         this.run = run;
         this.taskArgs = taskArgs;
     }
 
-    public static Context get() {
+    public static RunContext get() {
         return instance.get();
     }
 
-    static void set(Context context) {
+    static void set(RunContext context) {
         instance.set(context);
     }
 

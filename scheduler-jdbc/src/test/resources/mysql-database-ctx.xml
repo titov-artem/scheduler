@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
+
+    <bean id="jdbcOperations" class="org.springframework.jdbc.core.JdbcTemplate" depends-on="flywayInit">
+        <constructor-arg ref="dataSource"/>
+    </bean>
+
+    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url"
+                  value="jdbc:mysql://localhost:3306/scheduler?user=root&amp;password=&amp;autoReconnect=true&amp;useUnicode=true"/>
+    </bean>
+
+    <bean id="flywayInit" class="com.github.scheduler.FlywayInit" init-method="init">
+        <property name="flyway">
+            <bean class="org.flywaydb.core.Flyway">
+                <property name="dataSource" ref="dataSource"/>
+                <property name="locations" value="classpath:sql.mysql"/>
+            </bean>
+        </property>
+    </bean>
+
+</beans>

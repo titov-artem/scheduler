@@ -1,7 +1,7 @@
 package com.github.scheduler;
 
-import com.github.scheduler.engine.Context;
 import com.github.scheduler.engine.Engine;
+import com.github.scheduler.engine.RunContext;
 import com.github.scheduler.engine.SimpleInOrderTaskPicker;
 import com.github.scheduler.engine.TaskPicker;
 import com.github.scheduler.engine.executor.lookup.ByClassNameExecutorLookupService;
@@ -21,7 +21,7 @@ public class InMemoryOneInstanceIntegrationTest {
 
         InMemoryActiveRunsRepository activeRunsRepository = new InMemoryActiveRunsRepository();
         InMemoryHistoryRunsRepository historyRunsRepository = new InMemoryHistoryRunsRepository();
-        InMemoryTaskParamsRepository taskParamsRepository = new InMemoryTaskParamsRepository();
+        InMemoryTaskArgsRepository taskParamsRepository = new InMemoryTaskArgsRepository();
         InMemoryTaskRepository taskRepository = new InMemoryTaskRepository();
         InMemoryTimetableRepository timetableRepository = new InMemoryTimetableRepository();
 
@@ -39,7 +39,7 @@ public class InMemoryOneInstanceIntegrationTest {
 
         Engine engine = new Engine();
         engine.setActiveRunsRepository(activeRunsRepository);
-        engine.setTaskParamsRepository(taskParamsRepository);
+        engine.setTaskArgsRepository(taskParamsRepository);
         engine.setExecutorLookupService(executorLookupService);
         engine.setTaskPicker(taskPicker);
         engine.setClock(clock);
@@ -75,8 +75,8 @@ public class InMemoryOneInstanceIntegrationTest {
 
         @Override
         public void run() {
-            TaskArgs taskArgs = Context.get().getTaskArgs();
-            Run run = Context.get().getRun();
+            TaskArgs taskArgs = RunContext.get().getTaskArgs();
+            Run run = RunContext.get().getRun();
 
             System.out.printf("Task params %s were executed in run %d with task %s%n",
                     taskArgs.get("name"), run.getRunId(), run.getTaskId());

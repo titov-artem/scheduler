@@ -23,10 +23,7 @@ import org.springframework.jdbc.support.KeyHolder;
 
 import javax.annotation.Nullable;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.github.scheduler.repo.jdbc.SQLSchema.*;
 import static com.github.scheduler.repo.jdbc.util.SqlDateUtils.toInstant;
@@ -139,8 +136,14 @@ public abstract class AbstractJdbcRunsRepository implements RunsRepository {
         PreparedStatementCreator psc = pscf.newPreparedStatementCreator(query.getBindValues());
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcOperations.update(psc, keyHolder);
-        long runId = keyHolder.getKey().longValue();
+        long runId = getKey(keyHolder, RUN_ID.getName()).longValue();
         return RunImpl.builder(run).withRunId(runId).build();
+    }
+
+    private Number getKey(KeyHolder keyHolder, String keyName) {
+        Map<String, Object> keys = keyHolder.getKeys();
+        if (keys.size() == 1) return keyHolder.getKey();
+        return (Number) keys.get(keyName);
     }
 
     @Override
@@ -199,7 +202,7 @@ public abstract class AbstractJdbcRunsRepository implements RunsRepository {
     @Override
     public void remove(Collection<Run> runs) {
         List<Object[]> params = runs.stream().map(r -> new Object[]{r.getRunId()}).collect(toList());
-        String sql = DSL().delete(getRunsTable()).where(RUN_ID.eq((Object) null)).getSQL();
+        String sql = DSL().delete(getRunsTable()).where(RUN_ID.eq((Long) null)).getSQL();
         jdbcOperations.batchUpdate(sql, params);
     }
 

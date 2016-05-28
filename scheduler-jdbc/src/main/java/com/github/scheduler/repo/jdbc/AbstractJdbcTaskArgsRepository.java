@@ -2,7 +2,7 @@ package com.github.scheduler.repo.jdbc;
 
 import com.github.scheduler.model.TaskArgs;
 import com.github.scheduler.model.TaskArgsImpl;
-import com.github.scheduler.repo.TaskParamsRepository;
+import com.github.scheduler.repo.TaskArgsRepository;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.springframework.beans.factory.annotation.Required;
@@ -14,13 +14,13 @@ import java.util.Optional;
 
 import static com.github.scheduler.repo.jdbc.SQLSchema.*;
 
-public abstract class AbstractJdbcTaskParamsRepository implements TaskParamsRepository {
+public abstract class AbstractJdbcTaskArgsRepository implements TaskArgsRepository {
 
     private JdbcOperations jdbcOperations;
 
     @Override
     public Optional<TaskArgs> get(String taskId) {
-        Query query = DSL().select().from(TASK_PARAMS_TABLE).where(TASK_ID.eq(taskId));
+        Query query = DSL().select().from(TASK_ARGS_TABLE).where(TASK_ID.eq(taskId));
         TaskArgsImpl.Builder builder = TaskArgsImpl.builder();
         jdbcOperations.query(query.getSQL(),
                 rs -> {
@@ -36,7 +36,7 @@ public abstract class AbstractJdbcTaskParamsRepository implements TaskParamsRepo
         String sql = null;
         for (final String name : taskArgs.getNames()) {
             for (String value : taskArgs.getAll(name)) {
-                Query query = DSL().insertInto(TASK_PARAMS_TABLE)
+                Query query = DSL().insertInto(TASK_ARGS_TABLE)
                         .set(TASK_ID, taskId)
                         .set(NAME, name)
                         .set(VALUE, value);

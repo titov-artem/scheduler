@@ -106,7 +106,7 @@ public abstract class AbstractJdbcTimetableRepository implements TimetableReposi
     @Override
     public void removeTasks(Collection<String> taskIds) {
         Iterator<String> iterator = taskIds.iterator();
-        Query query = DSL().deleteFrom(TIMETABLE_TABLE).where(TASK_ID.eq((Object) null));
+        Query query = DSL().deleteFrom(TIMETABLE_TABLE).where(TASK_ID.eq((String) null));
         jdbcOperations.batchUpdate(query.getSQL(), new BatchPreparedStatementSetter() {
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {

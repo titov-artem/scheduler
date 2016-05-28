@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="activeRunsRepository"
+          class="com.github.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcActiveRunsRepository">
+        <property name="jdbcOperations" ref="jdbcOperations"/>
+    </bean>
+
+    <bean id="historyRunsRepository"
+          class="com.github.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcHistoryRunsRepository">
+        <property name="jdbcOperations" ref="jdbcOperations"/>
+    </bean>
+
+    <bean id="taskParamsRepository"
+          class="com.github.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcTaskArgsRepository">
+        <property name="jdbcOperations" ref="jdbcOperations"/>
+    </bean>
+
+    <bean id="taskRepository"
+          class="com.github.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcTaskRepository">
+        <property name="jdbcOperations" ref="jdbcOperations"/>
+    </bean>
+
+    <bean id="timetableRepository"
+          class="com.github.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcTimetableRepository">
+        <property name="jdbcOperations" ref="jdbcOperations"/>
+    </bean>
+
+</beans>

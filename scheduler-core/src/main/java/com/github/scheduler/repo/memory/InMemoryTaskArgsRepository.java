@@ -1,13 +1,13 @@
 package com.github.scheduler.repo.memory;
 
 import com.github.scheduler.model.TaskArgs;
-import com.github.scheduler.repo.TaskParamsRepository;
+import com.github.scheduler.repo.TaskArgsRepository;
 
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class InMemoryTaskParamsRepository implements TaskParamsRepository {
+public class InMemoryTaskArgsRepository implements TaskArgsRepository {
 
     private final ConcurrentMap<String, TaskArgs> data = new ConcurrentHashMap<>();
 

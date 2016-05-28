@@ -7,7 +7,7 @@ import java.util.Optional;
 /**
  * Store params that will be passed to task
  */
-public interface TaskParamsRepository {
+public interface TaskArgsRepository {
 
     Optional<TaskArgs> get(String taskId);
 

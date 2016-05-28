@@ -6,7 +6,7 @@ import com.github.scheduler.model.Run;
 import com.github.scheduler.model.RunImpl;
 import com.github.scheduler.model.TaskArgs;
 import com.github.scheduler.repo.ActiveRunsRepository;
-import com.github.scheduler.repo.TaskParamsRepository;
+import com.github.scheduler.repo.TaskArgsRepository;
 import com.github.scheduler.utils.LocalTaskScheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public class Engine {
     private static final long DEFAULT_PICK_PERIOD = TimeUnit.MINUTES.toSeconds(1);
     /* Dependencies */
     private ActiveRunsRepository activeRunsRepository;
-    private TaskParamsRepository taskParamsRepository;
+    private TaskArgsRepository taskArgsRepository;
     private ExecutorLookupService executorLookupService;
     private TaskPicker taskPicker;
     private Clock clock = Clock.systemDefaultZone();
@@ -221,14 +221,14 @@ public class Engine {
             fail(acquiredRun, "No executor found");
             return false;
         }
-        Optional<TaskArgs> taskArgs = taskParamsRepository.get(acquiredRun.getTaskId());
+        Optional<TaskArgs> taskArgs = taskArgsRepository.get(acquiredRun.getTaskId());
         log.trace("Starting run {} with params {}", acquiredRun, taskArgs);
-        Context context = new Context(acquiredRun, taskArgs.orElse(null));
+        RunContext context = new RunContext(acquiredRun, taskArgs.orElse(null));
         start(acquiredRun, executor.get(), context);
         return true;
     }
 
-    private void start(Run r, Runnable executor, Context context) {
+    private void start(Run r, Runnable executor, RunContext context) {
         state.runningTasks.add(new RunFuture(r.getRunId(), executorService.submit(new Runner(r, executor, context))));
     }
 
@@ -309,9 +309,9 @@ public class Engine {
 
         private final Run r;
         private final Runnable executor;
-        private final Context context;
+        private final RunContext context;
 
-        Runner(Run r, Runnable executor, Context context) {
+        Runner(Run r, Runnable executor, RunContext context) {
             this.r = r;
             this.executor = executor;
             this.context = context;
@@ -338,7 +338,7 @@ public class Engine {
                 log.error("Failed to mark run with id {} as RUNNING", r.getRunId());
                 return;
             }
-            Context.set(context);
+            RunContext.set(context);
             try {
                 log.trace("Starting run {}", run.getRunId());
                 executor.run();
@@ -364,7 +364,7 @@ public class Engine {
                 log.error(reason, e);
                 fail(run, reason);
             } finally {
-                Context.clear();
+                RunContext.clear();
                 state.free(run);
             }
         }
@@ -377,8 +377,8 @@ public class Engine {
     }
 
     @Required
-    public void setTaskParamsRepository(TaskParamsRepository taskParamsRepository) {
-        this.taskParamsRepository = taskParamsRepository;
+    public void setTaskArgsRepository(TaskArgsRepository taskArgsRepository) {
+        this.taskArgsRepository = taskArgsRepository;
     }
 
     @Required

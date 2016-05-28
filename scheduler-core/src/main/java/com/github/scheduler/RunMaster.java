@@ -186,7 +186,7 @@ public class RunMaster implements Runnable {
                 .filter(t -> t.getStartingHost() == null)
                 .filter(t -> t.getType().canStart(t.getParam(), now, t.getLastRunTime()))
                 .collect(toMap(SchedulingParams::getTaskId, t -> t));
-        log.trace("Tasks to start ({}): {}", tasksToStart.size(), tasksToStart);
+        log.debug("Tasks to start ({}): {}", tasksToStart.size(), tasksToStart);
         // create runs for them and put into queue
         Set<String> startedTasks = tasksToStart.values().stream()
                 .map(this::tryStart)
@@ -216,10 +216,10 @@ public class RunMaster implements Runnable {
             return Optional.empty();
         }
         if (!Objects.equals(acquiredParams.getStartingHost(), host)) {
-            log.trace("Other instance acquire task {}", acquiredParams.getTaskId());
+            log.debug("Other instance acquire task {}", acquiredParams.getTaskId());
             return Optional.empty();
         }
-        log.trace("Task {} acquired on host {}", acquiredParams.getTaskId(), acquiredParams.getStartingHost());
+        log.debug("Task {} acquired on host {}", acquiredParams.getTaskId(), acquiredParams.getStartingHost());
         Optional<Task> task = taskRepository.get(param.getTaskId());
         if (!task.isPresent()) {
             log.warn("Failed to get task for params {}", param);
