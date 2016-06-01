@@ -39,7 +39,7 @@ subprojects {
         compile 'org.slf4j:slf4j-api:1.7.12'
         compile 'com.google.code.findbugs:jsr305:2.0.3'
 
-        // todo switch to provided whe release
+        // todo switch to provided when release
         compile 'org.springframework:spring-beans:4.1.6.RELEASE'
         compile 'org.springframework:spring-context:4.1.6.RELEASE'
 

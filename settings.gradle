@@ -3,3 +3,5 @@ rootProject.name = 'scheduler-parent'
 include ':scheduler-core'
 include ':scheduler-jdbc'
 include ':scheduler-test'
+include 'cron'
+
