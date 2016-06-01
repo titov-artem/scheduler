@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 
 import javax.annotation.Nullable;
 import java.time.ZonedDateTime;
+import java.util.regex.Pattern;
 
 import static com.github.sc.cron.Utils.validateValues;
 
@@ -11,6 +12,10 @@ import static com.github.sc.cron.Utils.validateValues;
  * Storing data about cron field part. Applicable only to simple fields
  */
 final class SimpleCronFieldPart implements CronPart {
+
+    private static final String INC_MARK = "/";
+    private static final Pattern SIMPLE_RANGE = Pattern.compile("[0-9]+\\-[0-9]+");
+    private static final Pattern SINGLE_VALUE = Pattern.compile("[0-9]+");
 
     private final boolean any;
     @Nullable
