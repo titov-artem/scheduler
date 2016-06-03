@@ -1,8 +1,14 @@
 package com.github.scheduler.model;
 
+import com.github.sc.cron.CronExpression;
+import com.github.sc.cron.CronExpressionImpl;
+
 import javax.annotation.Nullable;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
+import java.util.Optional;
 
 public enum SchedulingType {
     /**
@@ -10,8 +16,19 @@ public enum SchedulingType {
      */
     CRON {
         @Override
-        public boolean canStart(String paramValue, Instant curTime, Instant lastRunTime) {
-            return lastRunTime == null;
+        public boolean canStart(String paramValue, Instant curTime, Instant lastRunTime, long tickPeriodSeconds, ZoneId zone) {
+            CronExpression expression = CronExpressionImpl.of(paramValue);
+            if (expression.match(ZonedDateTime.ofInstant(curTime, zone))) return true;
+
+            Instant prevTime = curTime.minusSeconds(tickPeriodSeconds);
+            Optional<ZonedDateTime> maybeNext = expression.nextFireAfter(
+                    ZonedDateTime.ofInstant(prevTime, zone)
+            );
+            if (!maybeNext.isPresent()) return false;
+
+            Instant next = maybeNext.get().toInstant();
+
+            return prevTime.isBefore(next) && curTime.isAfter(next);
         }
     },
     /**
@@ -19,7 +36,7 @@ public enum SchedulingType {
      */
     ONCE {
         @Override
-        public boolean canStart(String paramValue, Instant curTime, Instant lastRunTime) {
+        public boolean canStart(String paramValue, Instant curTime, Instant lastRunTime, long tickPeriodSeconds, ZoneId zone) {
             return true;
         }
     },
@@ -29,15 +46,19 @@ public enum SchedulingType {
      */
     PERIOD {
         @Override
-        public boolean canStart(String paramValue, Instant curTime, Instant lastRunTime) {
+        public boolean canStart(String paramValue, Instant curTime, Instant lastRunTime, long tickPeriodSeconds, ZoneId zone) {
             if (lastRunTime == null) {
                 return true;
             }
-            return curTime.getLong(ChronoField.INSTANT_SECONDS) - lastRunTime.getLong(ChronoField.INSTANT_SECONDS) >= Long.parseLong(paramValue);
+            long curSeconds = curTime.getLong(ChronoField.INSTANT_SECONDS);
+            long lastRunSeconds = lastRunTime.getLong(ChronoField.INSTANT_SECONDS);
+            return curSeconds - lastRunSeconds >= Long.parseLong(paramValue);
         }
     };
 
     public abstract boolean canStart(@Nullable String paramValue,
                                      Instant curTime,
-                                     @Nullable Instant lastRunTime);
+                                     @Nullable Instant lastRunTime,
+                                     long tickPeriodSeconds,
+                                     ZoneId zone);
 }

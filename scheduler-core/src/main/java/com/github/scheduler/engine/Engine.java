@@ -8,6 +8,7 @@ import com.github.scheduler.model.TaskArgs;
 import com.github.scheduler.repo.ActiveRunsRepository;
 import com.github.scheduler.repo.TaskArgsRepository;
 import com.github.scheduler.utils.LocalTaskScheduler;
+import com.github.scheduler.utils.SchedulerHostProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MarkerFactory;
@@ -396,8 +397,8 @@ public class Engine {
     }
 
     @Required
-    public void setHost(String host) {
-        this.host = host;
+    public void setHostProvider(SchedulerHostProvider provider) {
+        this.host = provider.getHost();
     }
 
     @Required

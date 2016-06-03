@@ -14,7 +14,7 @@
                 <ref bean="engine"/>
             </list>
         </property>
-        <property name="period" value="1"/>
+        <property name="periodSeconds" value="1"/>
     </bean>
 
     <bean id="engine" class="com.github.scheduler.engine.Engine">
@@ -25,9 +25,13 @@
             <bean class="com.github.scheduler.engine.SimpleInOrderTaskPicker"/>
         </property>
         <property name="taskArgsRepository" ref="taskArgsRepository"/>
-        <property name="service" value="main"/>
         <property name="activeRunsRepository" ref="activeRunsRepository"/>
-        <property name="host" value="localhost"/>
+        <property name="hostProvider">
+            <bean class="com.github.scheduler.utils.FromPropertySchedulerHostProvider">
+                <property name="host" value="localhost"/>
+            </bean>
+        </property>
+        <property name="service" value="main"/>
         <property name="threadCount" value="1"/>
         <property name="capacity" value="100"/>
         <property name="pickPeriod" value="1"/>

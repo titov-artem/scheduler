@@ -44,7 +44,7 @@ public class RunMaster implements Runnable {
      */
     public static final Duration START_INTERVAL = Duration.ofMillis(TimeUnit.MINUTES.toMillis(1));
     private static final Logger log = LoggerFactory.getLogger(RunMaster.class);
-    private static final long DEFAULT_PERIOD = TimeUnit.MINUTES.toSeconds(1);
+    private static final long DEFAULT_PERIOD_SECONDS = TimeUnit.MINUTES.toSeconds(1);
     /* Dependencies */
     private TaskRepository taskRepository;
     private TimetableRepository timetableRepository;
@@ -61,7 +61,7 @@ public class RunMaster implements Runnable {
     /**
      * Run master wake up interval in seconds
      */
-    private long period = DEFAULT_PERIOD;
+    private long periodSeconds = DEFAULT_PERIOD_SECONDS;
     private String host;
 
     /* Internal fields */
@@ -87,7 +87,7 @@ public class RunMaster implements Runnable {
             engineTouchingService = Executors.newFixedThreadPool(1);
         }
         localTaskScheduler = new LocalTaskScheduler(1);
-        localTaskScheduler.scheduleWithFixRate(getClass().getSimpleName(), this, 0, period, TimeUnit.SECONDS);
+        localTaskScheduler.scheduleWithFixRate(getClass().getSimpleName(), this, 0, periodSeconds, TimeUnit.SECONDS);
     }
 
     @PreDestroy
@@ -184,7 +184,7 @@ public class RunMaster implements Runnable {
         // found tasks to start
         Map<String, SchedulingParams> tasksToStart = tasks.stream()
                 .filter(t -> t.getStartingHost() == null)
-                .filter(t -> t.getType().canStart(t.getParam(), now, t.getLastRunTime()))
+                .filter(t -> t.getType().canStart(t.getParam(), now, t.getLastRunTime(), periodSeconds, clock.getZone()))
                 .collect(toMap(SchedulingParams::getTaskId, t -> t));
         log.debug("Tasks to start ({}): {}", tasksToStart.size(), tasksToStart);
         // create runs for them and put into queue
@@ -301,11 +301,11 @@ public class RunMaster implements Runnable {
     }
 
     /**
-     * Set wake up period in seconds
+     * Set wake up periodSeconds in seconds
      *
-     * @param period period in seconds
+     * @param periodSeconds periodSeconds in seconds
      */
-    public void setPeriod(long period) {
-        this.period = period;
+    public void setPeriodSeconds(long periodSeconds) {
+        this.periodSeconds = periodSeconds;
     }
 }

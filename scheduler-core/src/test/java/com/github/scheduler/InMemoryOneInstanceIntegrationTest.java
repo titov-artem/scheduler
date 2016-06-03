@@ -8,6 +8,7 @@ import com.github.scheduler.engine.executor.lookup.ByClassNameExecutorLookupServ
 import com.github.scheduler.engine.executor.lookup.ExecutorLookupService;
 import com.github.scheduler.model.*;
 import com.github.scheduler.repo.memory.*;
+import com.github.scheduler.utils.FromPropertySchedulerHostProvider;
 import org.junit.Test;
 
 import java.time.Clock;
@@ -32,7 +33,7 @@ public class InMemoryOneInstanceIntegrationTest {
         runMaster.setTimetableRepository(timetableRepository);
         runMaster.setClock(clock);
         runMaster.setHost("localhost");
-        runMaster.setPeriod(1);
+        runMaster.setPeriodSeconds(1);
 
         TaskPicker taskPicker = new SimpleInOrderTaskPicker();
         ExecutorLookupService executorLookupService = new ByClassNameExecutorLookupService();
@@ -43,7 +44,7 @@ public class InMemoryOneInstanceIntegrationTest {
         engine.setExecutorLookupService(executorLookupService);
         engine.setTaskPicker(taskPicker);
         engine.setClock(clock);
-        engine.setHost("localhost");
+        engine.setHostProvider(new FromPropertySchedulerHostProvider("localhost"));
         engine.setCapacity(100);
         engine.setThreadCount(2);
         engine.setService("main");
