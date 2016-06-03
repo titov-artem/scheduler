@@ -14,7 +14,7 @@
                 <ref bean="engine"/>
             </list>
         </property>
-        <property name="periodSeconds" value="${scheduler.master.period}"/>
+        <property name="periodSeconds" value="${scheduler.master.periodSeconds}"/>
     </bean>
 
     <bean id="engine" class="com.github.scheduler.engine.Engine" init-method="start">
@@ -34,7 +34,7 @@
         <property name="service" value="${scheduler.engine.service}"/>
         <property name="threadCount" value="${scheduler.engine.threads}"/>
         <property name="capacity" value="${scheduler.engine.capacity}"/>
-        <property name="pickPeriod" value="${scheduler.engine.period}"/>
+        <property name="pickPeriod" value="${scheduler.engine.periodSeconds}"/>
     </bean>
 
 </beans>
