@@ -11,9 +11,10 @@ Cron support fields:
  * Year (optional)
 
 Supported expressions:
-| Field type | Expression | Meaning |
-| -----------|------------|---------|
-| Seconds    |      1     | Equal to specified value
+
+| A | B |
+| - | - |
+| c | c |
 
 
 # Scheduler
