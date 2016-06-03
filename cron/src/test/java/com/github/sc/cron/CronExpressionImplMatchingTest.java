@@ -1,16 +1,13 @@
 package com.github.sc.cron;
 
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.ZonedDateTime;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class CronExpressionImplMatchingTest {
-    private static final Logger log = LoggerFactory.getLogger(CronExpressionImplMatchingTest.class);
 
     @Test
     public void of() throws Exception {
@@ -20,7 +17,7 @@ public class CronExpressionImplMatchingTest {
 
     @Test
     public void testSecondsMatch() throws Exception {
-        assertTrue(CronExpressionImpl.of("* * * * * ?").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
+        assertTrue(CronExpressionImpl.of("* * * * * *").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("0 * * * * ?").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("0/5 * * * * ?").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("0/5 * * * * ?").match(ZonedDateTime.parse("2016-01-01T12:00:55.000Z")));
@@ -40,7 +37,7 @@ public class CronExpressionImplMatchingTest {
 
     @Test
     public void testMinutesMatch() throws Exception {
-        assertTrue(CronExpressionImpl.of("* * * * * ?").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
+        assertTrue(CronExpressionImpl.of("* * * * * *").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* 0 * * * ?").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* 0/5 * * * ?").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* 0/5 * * * ?").match(ZonedDateTime.parse("2016-01-01T12:55:00.000Z")));
@@ -60,7 +57,7 @@ public class CronExpressionImplMatchingTest {
 
     @Test
     public void testHoursMatch() throws Exception {
-        assertTrue(CronExpressionImpl.of("* * * * * ?").match(ZonedDateTime.parse("2016-01-01T00:00:00.000Z")));
+        assertTrue(CronExpressionImpl.of("* * * * * *").match(ZonedDateTime.parse("2016-01-01T00:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * 0 * * ?").match(ZonedDateTime.parse("2016-01-01T00:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * 0/5 * * ?").match(ZonedDateTime.parse("2016-01-01T00:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * 0/5 * * ?").match(ZonedDateTime.parse("2016-01-01T10:00:00.000Z")));
@@ -80,7 +77,7 @@ public class CronExpressionImplMatchingTest {
 
     @Test
     public void testDayOfMonthMatch() throws Exception {
-        assertTrue(CronExpressionImpl.of("* * * * * ?").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
+        assertTrue(CronExpressionImpl.of("* * * * * *").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * * 1 * ?").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * * 0/5 * ?").match(ZonedDateTime.parse("2016-01-05T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * * 0/5 * ?").match(ZonedDateTime.parse("2016-01-30T12:00:00.000Z")));
@@ -125,11 +122,13 @@ public class CronExpressionImplMatchingTest {
         assertFalse(CronExpressionImpl.of("* * * 31W * ?").match(ZonedDateTime.parse("2016-02-01T12:00:00.000Z")));
         assertFalse(CronExpressionImpl.of("* * * 1W * ?").match(ZonedDateTime.parse("2016-05-01T12:00:00.000Z")));
         assertFalse(CronExpressionImpl.of("* * * 1W * ?").match(ZonedDateTime.parse("2016-04-29T12:00:00.000Z")));
+        assertFalse(CronExpressionImpl.of("* * * 23W * ?").match(ZonedDateTime.parse("2016-04-15T12:00:00.000Z")));
+        assertFalse(CronExpressionImpl.of("* * * 17W * ?").match(ZonedDateTime.parse("2016-04-11T12:00:00.000Z")));
     }
 
     @Test
     public void testMonthsMatch() throws Exception {
-        assertTrue(CronExpressionImpl.of("* * * * * ?").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
+        assertTrue(CronExpressionImpl.of("* * * * * *").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * * * 1 ?").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * * * JAN ?").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * * * 1/5 ?").match(ZonedDateTime.parse("2016-01-01T12:00:00.000Z")));
@@ -159,7 +158,7 @@ public class CronExpressionImplMatchingTest {
         // "2016-02-05T12:00:00.000Z" - FRIDAY     5
         // "2016-02-06T12:00:00.000Z" - SATURDAY   6
         // "2016-02-07T12:00:00.000Z" - SUNDAY     7
-        assertTrue(CronExpressionImpl.of("* * * ? * *").match(ZonedDateTime.parse("2016-02-01T12:00:00.000Z")));
+        assertTrue(CronExpressionImpl.of("* * * * * *").match(ZonedDateTime.parse("2016-02-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * * ? * 1").match(ZonedDateTime.parse("2016-02-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * * ? * /3").match(ZonedDateTime.parse("2016-02-03T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * * ? * /3").match(ZonedDateTime.parse("2016-02-06T12:00:00.000Z")));
@@ -214,109 +213,6 @@ public class CronExpressionImplMatchingTest {
         assertTrue(CronExpressionImpl.of("* * * * * *", true).match(ZonedDateTime.parse("2016-02-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * * 1 * 1", true).match(ZonedDateTime.parse("2016-02-01T12:00:00.000Z")));
         assertTrue(CronExpressionImpl.of("* * * /3 * /3", true).match(ZonedDateTime.parse("2016-02-03T12:00:00.000Z")));
-    }
-
-    @Test
-    public void wrongSeconds() throws Exception {
-        assertThrows(() -> CronExpressionImpl.of("MON * * * * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("JAN * * * * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("W * * * * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("L * * * * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("3#3 * * * * ?"), IllegalArgumentException.class);
-
-        testWrongSimpleValues(0);
-    }
-
-    @Test
-    public void wrongMinutes() throws Exception {
-        assertThrows(() -> CronExpressionImpl.of("* MON * * * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("* JAN * * * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("* W * * * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("* L * * * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("* 3#3 * * * ?"), IllegalArgumentException.class);
-
-        testWrongSimpleValues(1);
-    }
-
-    @Test
-    public void wrongHours() throws Exception {
-        assertThrows(() -> CronExpressionImpl.of("* * MON * * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("* * JAN * * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("* * W * * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("* * L * * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("* * 3#3 * * ?"), IllegalArgumentException.class);
-
-        testWrongSimpleValues(2);
-    }
-
-    @Test
-    public void wrongDayOfMonth() throws Exception {
-        assertThrows(() -> CronExpressionImpl.of("* * * MON * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("* * * JAN * ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("* * * 3#3 * ?"), IllegalArgumentException.class);
-
-        testWrongSimpleValues(3);
-    }
-
-    @Test
-    public void wrongMonths() throws Exception {
-        assertThrows(() -> CronExpressionImpl.of("* * * * MON ? "), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("* * * * W ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("* * * * L ?"), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of("* * * * 3#3 ?"), IllegalArgumentException.class);
-
-        testWrongSimpleValues(4);
-    }
-
-    @Test
-    public void wrongDayOfWeek() throws Exception {
-        assertThrows(() -> CronExpressionImpl.of("* * * ? * JAN *"), IllegalArgumentException.class);
-
-        testWrongSimpleValues(5);
-    }
-
-    @Test
-    public void wrongDayOfMonthWithDayOfWeek() throws Exception {
-        assertThrows(() -> CronExpressionImpl.of("* * * 5 * MON *"), IllegalArgumentException.class);
-    }
-
-    @Test
-    public void wrong() throws Exception {
-        assertThrows(() -> CronExpressionImpl.of("* 0/5 1,3-5,7/3 MON JAN,3,5 * 2005-3000"), IllegalArgumentException.class);
-    }
-
-    private static void testWrongSimpleValues(int fieldPos) {
-        assertThrows(() -> CronExpressionImpl.of(buildExpressionForField("a", fieldPos)), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of(buildExpressionForField("-1", fieldPos)), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of(buildExpressionForField("1--1", fieldPos)), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of(buildExpressionForField("60", fieldPos)), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of(buildExpressionForField("1-60", fieldPos)), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of(buildExpressionForField("1/60", fieldPos)), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of(buildExpressionForField("60/6", fieldPos)), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of(buildExpressionForField("6/0", fieldPos)), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of(buildExpressionForField("6/-1", fieldPos)), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of(buildExpressionForField("-1/6", fieldPos)), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of(buildExpressionForField("1,,5", fieldPos)), IllegalArgumentException.class);
-        assertThrows(() -> CronExpressionImpl.of(buildExpressionForField(",1,5", fieldPos)), IllegalArgumentException.class);
-    }
-
-    private static String buildExpressionForField(String fieldSpec, int fieldPos) {
-        StringBuilder expression = new StringBuilder();
-        for (int i = 0; i < 5; i++) {
-            expression.append(" ").append(i == fieldPos ? fieldSpec : "*");
-        }
-        expression.append(" ").append(5 == fieldPos ? fieldSpec : "?");
-        return expression.toString().trim();
-    }
-
-    private static void assertThrows(Runnable action, Class<? extends Exception> exClass) {
-        try {
-            action.run();
-            fail("No exception of class " + exClass + " was thrown");
-        } catch (Exception e) {
-            assertThat(e.getClass(), equalTo(exClass));
-            log.debug("Expected exception was thrown: {} - {}", e.getClass().getSimpleName(), e.getMessage());
-        }
     }
 
 }

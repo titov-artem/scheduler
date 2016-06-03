@@ -64,11 +64,11 @@ public class CronExpressionImpl implements CronExpression, CronPart {
      * @return only time (hh:mm:ss) of next fire
      */
     private NextFireTime nextFireTimeAfter(ZonedDateTime afterTime) {
-        ZonedDateTime prototype = ZonedDateTime.of(0, 0, 0, 0, 0, 0, 0, afterTime.getZone());
+        ZonedDateTime prototype = ZonedDateTime.of(0, 1, 1, 0, 0, 0, 0, afterTime.getZone());
         // determine seconds
         int thisDaySeconds = -1;
         int nextDaySeconds = -1;
-        for (int i = 0; i < 60; i++) {
+        for (int i = SECONDS.getMinValue(); i <= SECONDS.getMaxValue(); i++) {
             ZonedDateTime time = prototype.plusSeconds(i);
             if (cronFields.get(SECONDS).match(time)) {
                 if (nextDaySeconds == -1) nextDaySeconds = i;
@@ -81,12 +81,24 @@ public class CronExpressionImpl implements CronExpression, CronPart {
         // determine minutes
         int thisDayMinutes = -1;
         int nextDayMinutes = -1;
-        for (int i = 0; i < 60; i++) {
+
+        if (thisDaySeconds == -1) {
+            thisDaySeconds = nextDaySeconds;
+        } else {
+            if (cronFields.get(MINUTES).match(afterTime)) {
+                thisDayMinutes = afterTime.getMinute();
+            } else {
+                thisDaySeconds = nextDaySeconds;
+            }
+        }
+
+        for (int i = MINUTES.getMinValue(); i <= MINUTES.getMaxValue(); i++) {
             ZonedDateTime time = prototype.plusMinutes(i);
             if (cronFields.get(MINUTES).match(time)) {
                 if (nextDayMinutes == -1) nextDayMinutes = i;
                 //noinspection ConstantConditions
-                if (i > afterTime.getMinute() && thisDayMinutes == -1) thisDayMinutes = i;
+                if (i > afterTime.getMinute() && thisDayMinutes == -1)
+                    thisDayMinutes = i;
             }
             if (nextDayMinutes != -1 && thisDayMinutes != -1) break;
         }
@@ -94,12 +106,25 @@ public class CronExpressionImpl implements CronExpression, CronPart {
         // determine hours
         int thisDayHours = -1;
         int nextDayHours = -1;
-        for (int i = 0; i < 23; i++) {
+
+        if (thisDayMinutes == -1) {
+            thisDayMinutes = nextDayMinutes;
+        } else {
+            if (cronFields.get(HOURS).match(afterTime)) {
+                thisDayHours = afterTime.getHour();
+            } else {
+                thisDayMinutes = nextDayMinutes;
+            }
+        }
+
+
+        for (int i = HOURS.getMinValue(); i <= HOURS.getMaxValue(); i++) {
             ZonedDateTime time = prototype.plusHours(i);
             if (cronFields.get(HOURS).match(time)) {
                 if (nextDayHours == -1) nextDayHours = i;
                 //noinspection ConstantConditions
-                if (i > afterTime.getHour() && thisDayHours == -1) thisDayHours = i;
+                if (i > afterTime.getHour() && thisDayHours == -1)
+                    thisDayHours = i;
             }
             if (nextDayHours != -1 && thisDayHours != -1) break;
         }
@@ -140,7 +165,7 @@ public class CronExpressionImpl implements CronExpression, CronPart {
      * @param expression expression string
      * @return parsed expression
      */
-    public static CronExpression of(String expression) {
+    public static CronExpressionImpl of(String expression) {
         return of(expression, false);
     }
 
@@ -156,7 +181,7 @@ public class CronExpressionImpl implements CronExpression, CronPart {
      *                               joined by "and" with other expression parts
      * @return parsed expression
      */
-    public static CronExpression of(String expression, boolean dayOfMonthAndDayOfWeek) {
+    public static CronExpressionImpl of(String expression, boolean dayOfMonthAndDayOfWeek) {
         String[] rawFields = expression.toUpperCase().split(" ");
         Preconditions.checkArgument(rawFields.length <= ORDERED_FIELDS.size(),
                 "Invalid expression. Expected format: <SECONDS> <MINUTES> <HOURS> <DAY OF MONTH> <MONTHS> <DAY OF WEEK>[ <YEARS>]");
@@ -177,16 +202,19 @@ public class CronExpressionImpl implements CronExpression, CronPart {
             String rawDayOfMonth = rawFields[ORDERED_FIELDS.indexOf(DAY_OF_MONTH)];
             String rawDayOfWeek = rawFields[ORDERED_FIELDS.indexOf(DAY_OF_WEEK)];
 
-            if ("?".equals(rawDayOfMonth)) {
-                fields.remove(DAY_OF_MONTH);
+            if (!"*".equals(rawDayOfMonth) || !"*".equals(rawDayOfWeek)) {
+                if ("?".equals(rawDayOfMonth)) {
+                    fields.remove(DAY_OF_MONTH);
+                }
+                if ("?".equals(rawDayOfWeek)) {
+                    fields.remove(DAY_OF_WEEK);
+                }
+
+                Preconditions.checkArgument(fields.containsKey(DAY_OF_MONTH) || fields.containsKey(DAY_OF_WEEK),
+                        "One of the day of month or day of week must be specified to not '?'");
+                Preconditions.checkArgument(!fields.containsKey(DAY_OF_MONTH) || !fields.containsKey(DAY_OF_WEEK),
+                        "Only one of the day of month or day of week can be specified, other must be '?'");
             }
-            if ("?".equals(rawDayOfWeek)) {
-                fields.remove(DAY_OF_WEEK);
-            }
-            Preconditions.checkArgument(fields.containsKey(DAY_OF_MONTH) || fields.containsKey(DAY_OF_WEEK),
-                    "One of the day of month or day of week must be specified to not '?'");
-            Preconditions.checkArgument(!fields.containsKey(DAY_OF_MONTH) || !fields.containsKey(DAY_OF_WEEK),
-                    "Only one of the day of month or day of week can be specified, other must be '?'");
         }
 
 

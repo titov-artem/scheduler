@@ -50,7 +50,7 @@ class DayOfWeekCronFieldPart extends AbstractComplicatedCronFieldPart implements
         }
         if (last != null) {
             ZonedDateTime future = dateTime.plusDays(last.offset);
-            if (future.getDayOfWeek().getValue() != last.day) {
+            if (future.getDayOfWeek().getValue() != last.dayOfWeek) {
                 return false;
             }
             int month = future.getMonthValue();
@@ -140,20 +140,20 @@ class DayOfWeekCronFieldPart extends AbstractComplicatedCronFieldPart implements
         /**
          * Day of the week
          */
-        final int day;
+        final int dayOfWeek;
         /**
          * Offset to the past from the {@code day}
          */
         final int offset;
 
-        Last(int day, int offset) {
-            this.day = day;
+        Last(int dayOfWeek, int offset) {
+            this.dayOfWeek = dayOfWeek;
             this.offset = offset;
         }
 
         @Override
         public String toString() {
-            return String.format("%dL-%d", day, offset);
+            return String.format("%dL-%d", dayOfWeek, offset);
         }
     }
 

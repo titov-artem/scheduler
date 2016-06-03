@@ -57,41 +57,47 @@ class DayOfMonthCronFieldPart extends AbstractComplicatedCronFieldPart implement
             return month != nextSundayMonth;
         }
         if (nearestWeekDayToDay != NONE) {
-            int dayOfMonth = dateTime.getDayOfMonth();
             int dayOfWeek = dateTime.getDayOfWeek().getValue();
-            // if today not week day - false
-            if (dayOfWeek >= DayOfWeek.SATURDAY.getValue()) return false;
-
-            // if today is that day - return true
-            if (dayOfMonth == nearestWeekDayToDay) return true;
-
+            int dayOfMonth = dateTime.getDayOfMonth();
             int month = dateTime.getMonthValue();
+
             int leftDays = nearestWeekDayToDay - dayOfMonth; // maybe negative
             ZonedDateTime thatDay = dateTime.plusDays(leftDays);
-            int thatMonth = thatDay.getMonthValue();
+            int thatDayOfMonth = nearestWeekDayToDay;
             int thatDayOfWeek = thatDay.getDayOfWeek().getValue();
+            int thatMonth = thatDay.getMonthValue();
 
-            // if today and that day have different months - return false
+            // today must be weekday in the same month
+            if (dayOfWeek >= DayOfWeek.SATURDAY.getValue()) return false;
             if (month != thatMonth) return false;
 
-            // if that day will be, or was week day - return false
-            if (thatDayOfWeek <= DayOfWeek.FRIDAY.getValue()) return false;
+            // if today is that day - ok!
+            if (dayOfMonth == nearestWeekDayToDay) return true;
 
-            // here we are if that day is SATURDAY or SUNDAY and it will be the same month
-
-            // if that day is SATURDAY, then return "Is today FRIDAY?"
             if (thatDayOfWeek == DayOfWeek.SATURDAY.getValue()) {
-                if (dayOfWeek == DayOfWeek.FRIDAY.getValue()) return true;
+                if (dayOfWeek == DayOfWeek.FRIDAY.getValue()) {
+                    // today must be the day before that day
+                    return dayOfMonth == thatDayOfMonth - 1;
+                }
                 if (dayOfWeek == DayOfWeek.MONDAY.getValue()) {
-                    return thatDay.minusDays(1).getMonthValue() != thatMonth;
+                    // FRIDAY must be in another month and
+                    // today must be that day + 2
+                    return thatDay.minusDays(1).getMonthValue() != thatMonth
+                            && dayOfMonth == thatDayOfMonth + 2;
                 }
             }
 
             // if that day is SUNDAY, then return "Is today MONDAY?"
             if (thatDayOfWeek == DayOfWeek.SUNDAY.getValue()) {
-                if (dayOfWeek == DayOfWeek.MONDAY.getValue()) return true;
+                if (dayOfWeek == DayOfWeek.MONDAY.getValue()) {
+                    // today must the day after that day
+                    return dayOfMonth == thatDayOfMonth + 1;
+                }
                 if (dayOfWeek == DayOfWeek.FRIDAY.getValue()) {
-                    return thatDay.plusDays(1).getMonthValue() != thatMonth;
+                    // MONDAY must be in another month nad
+                    // today must be that day - 2
+                    return thatDay.plusDays(1).getMonthValue() != thatMonth
+                            && dayOfMonth == thatDayOfMonth - 2;
                 }
             }
 
@@ -132,7 +138,7 @@ class DayOfMonthCronFieldPart extends AbstractComplicatedCronFieldPart implement
             }
         }
 
-        // 15W
+        // 15W nearest week day to 15th day of month
         if (part.contains(WEEKDAYS_MARK)) {
             int day = Integer.parseInt(part.substring(0, part.length() - 1));
             Utils.validateValues(TYPE, day);

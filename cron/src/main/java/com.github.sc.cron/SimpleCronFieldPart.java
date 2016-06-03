@@ -42,6 +42,7 @@ final class SimpleCronFieldPart implements CronPart {
             return value >= range.from && value <= range.to;
         }
         if (inc != null) {
+            if (inc.start > value) return false;
             return (value - inc.start) % inc.inc == 0;
         }
         return false;
@@ -98,6 +99,7 @@ final class SimpleCronFieldPart implements CronPart {
             final int from = Integer.parseInt(split[0]);
             final int to = Integer.parseInt(split[1]);
             validateValues(type, from, to);
+            Preconditions.checkArgument(from <= to, "From must be less than to in range in field %s", type.name());
             return range(new Range(from, to), type);
         }
         // 10
