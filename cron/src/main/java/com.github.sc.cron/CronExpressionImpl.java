@@ -1,20 +1,14 @@
 package com.github.sc.cron;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-
-import javax.annotation.Nullable;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import static com.github.sc.cron.CronFieldType.*;
+import static com.github.sc.cron.Utils.checkState;
 
 public class CronExpressionImpl implements CronExpression, CronPart {
 
-    private static final List<CronFieldType> ORDERED_FIELDS = ImmutableList.of(
+    private static final List<CronFieldType> ORDERED_FIELDS = Arrays.asList(
             SECONDS, MINUTES, HOURS, DAY_OF_MONTH, MONTHS, DAY_OF_WEEK, YEARS
     );
 
@@ -139,7 +133,7 @@ public class CronExpressionImpl implements CronExpression, CronPart {
                         : null;
 
         if (thisDayFireTime != null) {
-            Preconditions.checkState(afterTime.isBefore(withTime(afterTime, thisDayFireTime)),
+            checkState(afterTime.isBefore(withTime(afterTime, thisDayFireTime)),
                     "Internal error: invalid this day fire time!");
         }
 
@@ -183,13 +177,13 @@ public class CronExpressionImpl implements CronExpression, CronPart {
      */
     public static CronExpressionImpl of(String expression, boolean dayOfMonthAndDayOfWeek) {
         String[] rawFields = expression.toUpperCase().split(" ");
-        Preconditions.checkArgument(rawFields.length <= ORDERED_FIELDS.size(),
+        Utils.checkArgument(rawFields.length <= ORDERED_FIELDS.size(),
                 "Invalid expression. Expected format: <SECONDS> <MINUTES> <HOURS> <DAY OF MONTH> <MONTHS> <DAY OF WEEK>[ <YEARS>]");
         Map<CronFieldType, CronField> fields = new HashMap<>();
         for (int i = 0; i < ORDERED_FIELDS.size(); i++) {
             CronFieldType fieldType = ORDERED_FIELDS.get(i);
             if (i >= rawFields.length) {
-                Preconditions.checkArgument(!fieldType.isMandatory(),
+                Utils.checkArgument(!fieldType.isMandatory(),
                         "Missed mandatory field in expression: %s",
                         fieldType.name());
                 break;
@@ -210,9 +204,9 @@ public class CronExpressionImpl implements CronExpression, CronPart {
                     fields.remove(DAY_OF_WEEK);
                 }
 
-                Preconditions.checkArgument(fields.containsKey(DAY_OF_MONTH) || fields.containsKey(DAY_OF_WEEK),
+                Utils.checkArgument(fields.containsKey(DAY_OF_MONTH) || fields.containsKey(DAY_OF_WEEK),
                         "One of the day of month or day of week must be specified to not '?'");
-                Preconditions.checkArgument(!fields.containsKey(DAY_OF_MONTH) || !fields.containsKey(DAY_OF_WEEK),
+                Utils.checkArgument(!fields.containsKey(DAY_OF_MONTH) || !fields.containsKey(DAY_OF_WEEK),
                         "Only one of the day of month or day of week can be specified, other must be '?'");
             }
         }
@@ -222,13 +216,11 @@ public class CronExpressionImpl implements CronExpression, CronPart {
     }
 
     private static final class NextFireTime {
-        @Nullable
         final ZonedDateTime thisDayFireTime;
-        @Nullable
         final ZonedDateTime nextDayFireTime;
 
-        private NextFireTime(@Nullable ZonedDateTime thisDayFireTime,
-                             @Nullable ZonedDateTime nextDayFireTime) {
+        private NextFireTime(ZonedDateTime thisDayFireTime,
+                             ZonedDateTime nextDayFireTime) {
             this.thisDayFireTime = thisDayFireTime;
             this.nextDayFireTime = nextDayFireTime;
         }

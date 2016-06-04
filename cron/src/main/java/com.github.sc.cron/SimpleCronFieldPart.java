@@ -1,11 +1,9 @@
 package com.github.sc.cron;
 
-import com.google.common.base.Preconditions;
-
-import javax.annotation.Nullable;
 import java.time.ZonedDateTime;
 import java.util.regex.Pattern;
 
+import static com.github.sc.cron.Utils.checkArgument;
 import static com.github.sc.cron.Utils.validateValues;
 
 /**
@@ -18,9 +16,7 @@ final class SimpleCronFieldPart implements CronPart {
     private static final Pattern SINGLE_VALUE = Pattern.compile("[0-9]+");
 
     private final boolean any;
-    @Nullable
     private final Range range;
-    @Nullable
     private final Inc inc;
     private final CronFieldType type;
 
@@ -70,7 +66,7 @@ final class SimpleCronFieldPart implements CronPart {
     }
 
     static SimpleCronFieldPart of(String part, CronFieldType type) {
-        Preconditions.checkArgument(part != null && !part.trim().isEmpty(),
+        checkArgument(part != null && !part.trim().isEmpty(),
                 "Empty cron field parts for field %s is forbidden", type.name());
         // * or ?
         if ("*".equals(part) || "?".equals(part)) {
@@ -90,7 +86,7 @@ final class SimpleCronFieldPart implements CronPart {
             }
             if (start != 0)
                 validateValues(type, start);
-            Preconditions.checkArgument(inc > 0 && inc <= type.getMaxValue(), "Increment must be greater than 0 and less than or equal to %s in field %s", type.getMaxValue(), type);
+            checkArgument(inc > 0 && inc <= type.getMaxValue(), "Increment must be greater than 0 and less than or equal to %s in field %s", type.getMaxValue(), type);
             return inc(new Inc(start, inc), type);
         }
         // 1-12
@@ -99,7 +95,7 @@ final class SimpleCronFieldPart implements CronPart {
             final int from = Integer.parseInt(split[0]);
             final int to = Integer.parseInt(split[1]);
             validateValues(type, from, to);
-            Preconditions.checkArgument(from <= to, "From must be less than to in range in field %s", type.name());
+            checkArgument(from <= to, "From must be less than to in range in field %s", type.name());
             return range(new Range(from, to), type);
         }
         // 10

@@ -1,10 +1,10 @@
 package com.github.sc.cron;
 
-import com.google.common.base.Preconditions;
-
 import java.time.DayOfWeek;
 import java.time.ZonedDateTime;
 import java.util.regex.Pattern;
+
+import static com.github.sc.cron.Utils.checkArgument;
 
 class DayOfWeekCronFieldPart extends AbstractComplicatedCronFieldPart implements CronPart {
 
@@ -78,7 +78,7 @@ class DayOfWeekCronFieldPart extends AbstractComplicatedCronFieldPart implements
     }
 
     static DayOfWeekCronFieldPart of(String part) {
-        Preconditions.checkArgument(part != null && !part.trim().isEmpty(),
+        checkArgument(part != null && !part.trim().isEmpty(),
                 "Empty cron field parts for field %s is forbidden", TYPE.name());
         if (!part.contains(LAST_MARK) && !part.contains(WEEKDAYS_MARK) && !part.contains(LEGAL_MARK)) {
             return simple(SimpleCronFieldPart.of(part, TYPE));
