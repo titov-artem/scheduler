@@ -9,6 +9,9 @@ import java.util.function.BiFunction;
 
 import static java.util.stream.Collectors.toList;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 class CronFieldImpl implements CronField {
 
     private final List<CronPart> cronParts;

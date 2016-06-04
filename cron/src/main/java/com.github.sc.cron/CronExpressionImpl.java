@@ -6,6 +6,9 @@ import java.util.*;
 import static com.github.sc.cron.CronFieldType.*;
 import static com.github.sc.cron.Utils.checkState;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class CronExpressionImpl implements CronExpression, CronPart {
 
     private static final List<CronFieldType> ORDERED_FIELDS = Arrays.asList(

@@ -5,6 +5,16 @@ dependencies {
     compile 'commons-dbcp:commons-dbcp:1.4'
     compile 'org.postgresql:postgresql:9.4.1208'
     compile 'org.flywaydb:flyway-core:3.2.1'
+
     compile 'org.slf4j:jcl-over-slf4j:1.7.12'
     compile 'ch.qos.logback:logback-classic:1.1.2'
+
+    compile 'org.springframework:spring-beans:4.1.6.RELEASE'
+    compile 'org.springframework:spring-context:4.1.6.RELEASE'
+}
+
+jar {
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }

@@ -6,6 +6,10 @@ import java.util.regex.Pattern;
 
 import static com.github.sc.cron.Utils.checkArgument;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
+
 class DayOfWeekCronFieldPart extends AbstractComplicatedCronFieldPart implements CronPart {
 
     private static final Pattern LAST_XXX_DAY = Pattern.compile("[0-9]+L(\\-[0-9]+)?");

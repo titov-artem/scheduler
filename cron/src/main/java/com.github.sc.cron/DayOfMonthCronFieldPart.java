@@ -3,6 +3,9 @@ package com.github.sc.cron;
 import java.time.DayOfWeek;
 import java.time.ZonedDateTime;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 class DayOfMonthCronFieldPart extends AbstractComplicatedCronFieldPart implements CronPart {
 
     private static final int NONE = -1;

@@ -2,6 +2,9 @@ package com.github.sc.cron;
 
 import java.util.function.Supplier;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 final class Utils {
     private Utils() {
     }

@@ -2,6 +2,9 @@ package com.github.sc.cron;
 
 import java.util.regex.Pattern;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 abstract class AbstractComplicatedCronFieldPart {
 
     protected static final String LAST_MARK = "L";

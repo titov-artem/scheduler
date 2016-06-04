@@ -5,7 +5,10 @@ import java.util.Optional;
 
 /**
  * Cron expression
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
+
 public interface CronExpression {
 
     /**

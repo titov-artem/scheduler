@@ -5,6 +5,9 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZonedDateTime;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 enum CronFieldType {
 
     SECONDS(0, 59, true) {

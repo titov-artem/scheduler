@@ -11,6 +11,8 @@ package com.github.sc.cron;
  * <li>DAY OF WEEK</li>
  * <li>YEARS</li>
  * </ul>
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 interface CronField extends CronPart {
 

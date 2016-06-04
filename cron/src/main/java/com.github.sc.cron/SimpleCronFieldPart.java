@@ -8,6 +8,8 @@ import static com.github.sc.cron.Utils.validateValues;
 
 /**
  * Storing data about cron field part. Applicable only to simple fields
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 final class SimpleCronFieldPart implements CronPart {
 
