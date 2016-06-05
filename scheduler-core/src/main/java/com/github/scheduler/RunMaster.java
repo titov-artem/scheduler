@@ -229,7 +229,7 @@ public class RunMaster implements Runnable {
                 .withQueuedTime(Instant.now(clock))
                 .build());
         log.info("Task {} started. Run: {}", task.get().getId(), run);
-        tryRelease(acquiredParams);
+        tryRelease(builder(acquiredParams).withLastRunTime(Instant.now(clock)).build());
         return Optional.of(run);
     }
 

@@ -7,7 +7,7 @@
         <property name="timetableRepository" ref="timetableRepository"/>
         <property name="historyRunsRepository" ref="historyRunsRepository"/>
         <property name="activeRunsRepository" ref="activeRunsRepository"/>
-        <property name="host" value="localhost"/>
+        <property name="host" value="${scheduler.host}"/>
         <property name="taskRepository" ref="taskRepository"/>
         <property name="engines">
             <list>
