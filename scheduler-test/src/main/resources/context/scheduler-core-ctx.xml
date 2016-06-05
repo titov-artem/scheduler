@@ -3,7 +3,7 @@
        xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="runMaster" class="com.github.scheduler.RunMaster" init-method="start">
+    <bean id="runMaster" class="com.github.sc.scheduler.RunMaster" init-method="start">
         <property name="timetableRepository" ref="timetableRepository"/>
         <property name="historyRunsRepository" ref="historyRunsRepository"/>
         <property name="activeRunsRepository" ref="activeRunsRepository"/>
@@ -17,17 +17,17 @@
         <property name="periodSeconds" value="${scheduler.master.periodSeconds}"/>
     </bean>
 
-    <bean id="engine" class="com.github.scheduler.engine.Engine" init-method="start">
+    <bean id="engine" class="com.github.sc.scheduler.engine.Engine" init-method="start">
         <property name="executorLookupService">
-            <bean class="com.github.scheduler.engine.executor.lookup.ByClassNameExecutorLookupService"/>
+            <bean class="com.github.sc.scheduler.engine.executor.lookup.ByClassNameExecutorLookupService"/>
         </property>
         <property name="taskPicker">
-            <bean class="com.github.scheduler.engine.SimpleInOrderTaskPicker"/>
+            <bean class="com.github.sc.scheduler.engine.SimpleInOrderTaskPicker"/>
         </property>
         <property name="taskArgsRepository" ref="taskParamsRepository"/>
         <property name="activeRunsRepository" ref="activeRunsRepository"/>
         <property name="hostProvider">
-            <bean class="com.github.scheduler.utils.FromPropertySchedulerHostProvider">
+            <bean class="com.github.sc.scheduler.utils.FromPropertySchedulerHostProvider">
                 <property name="host" value="${scheduler.host}"/>
             </bean>
         </property>

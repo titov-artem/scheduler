@@ -14,7 +14,7 @@
                   value="jdbc:postgresql://localhost:5432/scheduler?user=scheduler&amp;password=scheduler"/>
     </bean>
 
-    <bean id="flywayInit" class="com.github.scheduler.FlywayInit" init-method="init">
+    <bean id="flywayInit" class="com.github.sc.scheduler.FlywayInit" init-method="init">
         <property name="flyway">
             <bean class="org.flywaydb.core.Flyway">
                 <property name="dataSource" ref="dataSource"/>

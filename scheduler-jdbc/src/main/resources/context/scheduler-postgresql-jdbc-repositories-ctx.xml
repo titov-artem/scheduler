@@ -4,27 +4,27 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="activeRunsRepository"
-          class="com.github.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcActiveRunsRepository">
+          class="com.github.sc.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcActiveRunsRepository">
         <property name="jdbcOperations" ref="jdbcOperations"/>
     </bean>
 
     <bean id="historyRunsRepository"
-          class="com.github.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcHistoryRunsRepository">
+          class="com.github.sc.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcHistoryRunsRepository">
         <property name="jdbcOperations" ref="jdbcOperations"/>
     </bean>
 
     <bean id="taskParamsRepository"
-          class="com.github.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcTaskArgsRepository">
+          class="com.github.sc.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcTaskArgsRepository">
         <property name="jdbcOperations" ref="jdbcOperations"/>
     </bean>
 
     <bean id="taskRepository"
-          class="com.github.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcTaskRepository">
+          class="com.github.sc.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcTaskRepository">
         <property name="jdbcOperations" ref="jdbcOperations"/>
     </bean>
 
     <bean id="timetableRepository"
-          class="com.github.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcTimetableRepository">
+          class="com.github.sc.scheduler.repo.jdbc.postgresql.Postgresql9_5JdbcTimetableRepository">
         <property name="jdbcOperations" ref="jdbcOperations"/>
     </bean>
 
