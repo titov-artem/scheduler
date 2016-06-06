@@ -1,7 +1,7 @@
 package com.github.sc.scheduler.example;
 
-import com.github.sc.scheduler.engine.RunContext;
-import com.github.sc.scheduler.model.TaskArgs;
+import com.github.sc.scheduler.core.engine.RunContext;
+import com.github.sc.scheduler.core.model.TaskArgs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,14 +1,15 @@
 package com.github.sc.scheduler;
 
-import com.github.sc.scheduler.engine.Engine;
-import com.github.sc.scheduler.engine.RunContext;
-import com.github.sc.scheduler.engine.SimpleInOrderTaskPicker;
-import com.github.sc.scheduler.engine.TaskPicker;
-import com.github.sc.scheduler.engine.executor.lookup.ByClassNameExecutorLookupService;
-import com.github.sc.scheduler.engine.executor.lookup.ExecutorLookupService;
-import com.github.sc.scheduler.model.*;
-import com.github.sc.scheduler.repo.memory.*;
-import com.github.sc.scheduler.utils.FromPropertySchedulerHostProvider;
+import com.github.sc.scheduler.core.RunMaster;
+import com.github.sc.scheduler.core.engine.Engine;
+import com.github.sc.scheduler.core.engine.RunContext;
+import com.github.sc.scheduler.core.engine.SimpleInOrderTaskPicker;
+import com.github.sc.scheduler.core.engine.TaskPicker;
+import com.github.sc.scheduler.core.engine.executor.lookup.ByClassNameExecutorLookupService;
+import com.github.sc.scheduler.core.engine.executor.lookup.ExecutorLookupService;
+import com.github.sc.scheduler.core.model.*;
+import com.github.sc.scheduler.core.repo.memory.*;
+import com.github.sc.scheduler.core.utils.FromPropertySchedulerHostProvider;
 import org.junit.Test;
 
 import java.time.Clock;

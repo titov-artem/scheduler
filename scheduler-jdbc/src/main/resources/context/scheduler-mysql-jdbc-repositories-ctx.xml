@@ -4,31 +4,31 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
     <bean id="activeRunsRepository"
-          class="com.github.sc.scheduler.repo.jdbc.mysql.MySqlJdbcActiveRunsRepository">
+          class="com.github.sc.scheduler.jdbc.repo.mysql.MySqlJdbcActiveRunsRepository">
         <property name="jdbcOperations" ref="jdbcOperations"/>
     </bean>
 
     <bean id="historyRunsRepository"
-          class="com.github.sc.scheduler.repo.jdbc.mysql.MySqlJdbcHistoryRunsRepository">
+          class="com.github.sc.scheduler.jdbc.repo.mysql.MySqlJdbcHistoryRunsRepository">
         <property name="jdbcOperations" ref="jdbcOperations"/>
     </bean>
 
     <bean id="taskArgsRepository"
-          class="com.github.sc.scheduler.repo.jdbc.mysql.MySqlJdbcTaskArgsRepository">
+          class="com.github.sc.scheduler.jdbc.repo.mysql.MySqlJdbcTaskArgsRepository">
         <property name="jdbcOperations" ref="jdbcOperations"/>
     </bean>
 
     <bean id="taskRepository"
-          class="com.github.sc.scheduler.repo.jdbc.mysql.MySqlJdbcTaskRepository">
+          class="com.github.sc.scheduler.jdbc.repo.mysql.MySqlJdbcTaskRepository">
         <property name="jdbcOperations" ref="jdbcOperations"/>
     </bean>
 
     <bean id="timetableRepository"
-          class="com.github.sc.scheduler.repo.jdbc.mysql.MySqlJdbcTimetableRepository">
+          class="com.github.sc.scheduler.jdbc.repo.mysql.MySqlJdbcTimetableRepository">
         <property name="jdbcOperations" ref="jdbcOperations"/>
     </bean>
 
-    <bean id="transactionSupport" class="com.github.sc.scheduler.utils.JdbcTransactionSupport">
+    <bean id="transactionSupport" class="com.github.sc.scheduler.jdbc.utils.JdbcTransactionSupport">
         <property name="transactionOperations" ref="transactionOperations"/>
     </bean>
 

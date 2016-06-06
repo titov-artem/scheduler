@@ -1,0 +1,4 @@
+dependencies {
+    compile project(':scheduler-core')
+    compile project(':scheduler-http:scheduler-http-api')
+}

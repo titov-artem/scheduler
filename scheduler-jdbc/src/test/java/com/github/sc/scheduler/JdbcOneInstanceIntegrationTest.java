@@ -1,12 +1,13 @@
 package com.github.sc.scheduler;
 
-import com.github.sc.scheduler.engine.Engine;
-import com.github.sc.scheduler.engine.RunContext;
-import com.github.sc.scheduler.model.*;
-import com.github.sc.scheduler.repo.HistoryRunsRepository;
-import com.github.sc.scheduler.repo.TaskArgsRepository;
-import com.github.sc.scheduler.repo.TaskRepository;
-import com.github.sc.scheduler.repo.TimetableRepository;
+import com.github.sc.scheduler.core.RunMaster;
+import com.github.sc.scheduler.core.engine.Engine;
+import com.github.sc.scheduler.core.engine.RunContext;
+import com.github.sc.scheduler.core.model.*;
+import com.github.sc.scheduler.core.repo.HistoryRunsRepository;
+import com.github.sc.scheduler.core.repo.TaskArgsRepository;
+import com.github.sc.scheduler.core.repo.TaskRepository;
+import com.github.sc.scheduler.core.repo.TimetableRepository;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

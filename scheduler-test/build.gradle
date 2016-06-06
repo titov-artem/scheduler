@@ -1,7 +1,7 @@
 dependencies {
     compile project(':scheduler-core')
     compile project(':scheduler-jdbc')
-    compile project(':scheduler-http')
+    compile project(':scheduler-http:scheduler-http-impl')
 
     compile 'commons-dbcp:commons-dbcp:1.4'
     compile 'org.postgresql:postgresql:9.4.1208'
