@@ -15,3 +15,5 @@
 package com.github.sc.scheduler.http.dto;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+
+// todo remove dependency on scheduler-core!
