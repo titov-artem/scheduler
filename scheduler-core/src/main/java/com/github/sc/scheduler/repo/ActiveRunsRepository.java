@@ -11,7 +11,7 @@ public interface ActiveRunsRepository extends RunsRepository {
      * @return maybe empty list of runs in order of queuing
      */
     @Override
-    List<Run> getRuns();
+    List<Run> getAll();
 
     void ping(long runId, Instant pingTime);
 }

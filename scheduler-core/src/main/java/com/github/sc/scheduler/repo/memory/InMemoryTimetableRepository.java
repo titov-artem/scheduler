@@ -23,7 +23,7 @@ public class InMemoryTimetableRepository implements TimetableRepository {
     private final AtomicLong idGenerator = new AtomicLong();
 
     @Override
-    public List<SchedulingParams> getTasks() {
+    public List<SchedulingParams> getAll() {
         return data.values().stream().map(c -> c.params.get()).collect(toList());
     }
 

@@ -32,7 +32,7 @@
             </bean>
         </property>
         <property name="service" value="main"/>
-        <property name="threadCount" value="1"/>
+        <property name="threadsCount" value="1"/>
         <property name="capacity" value="100"/>
         <property name="pickPeriod" value="1"/>
     </bean>

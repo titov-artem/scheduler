@@ -12,14 +12,21 @@ import java.util.Objects;
 
 public class TaskArgsImpl implements TaskArgs {
 
+    private final String taskId;
     private final ListMultimap<String, String> params;
 
-    private TaskArgsImpl(ListMultimap<String, String> params) {
+    private TaskArgsImpl(String taskId, ListMultimap<String, String> params) {
+        this.taskId = taskId;
         this.params = params;
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public static Builder builder(String taskId) {
+        return new Builder(taskId);
+    }
+
+    @Override
+    public String getTaskId() {
+        return taskId;
     }
 
     @Override
@@ -51,16 +58,26 @@ public class TaskArgsImpl implements TaskArgs {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TaskArgsImpl that = (TaskArgsImpl) o;
-        return Objects.equals(params, that.params);
+        return Objects.equals(taskId, that.taskId)
+                && Objects.equals(params, that.params);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(params);
+        return Objects.hash(taskId, params);
     }
 
     public static class Builder {
+        private final String taskId;
         private ListMultimap<String, String> params = ArrayListMultimap.create();
+
+        public Builder(String taskId) {
+            this.taskId = taskId;
+        }
+
+        public String getTaskId() {
+            return taskId;
+        }
 
         public Builder put(String name, String value) {
             params.replaceValues(name, Collections.singleton(value));
@@ -77,7 +94,7 @@ public class TaskArgsImpl implements TaskArgs {
         }
 
         public TaskArgs build() {
-            return new TaskArgsImpl(params);
+            return new TaskArgsImpl(taskId, params);
         }
     }
 }

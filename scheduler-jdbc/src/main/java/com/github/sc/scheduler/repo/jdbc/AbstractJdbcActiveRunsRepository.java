@@ -13,7 +13,7 @@ import java.util.List;
 public abstract class AbstractJdbcActiveRunsRepository extends AbstractJdbcRunsRepository implements ActiveRunsRepository {
 
     @Override
-    public List<Run> getRuns() {
+    public List<Run> getAll() {
         return getJdbcOperations().query(DSL().select().from(SQLSchema.RUNS_TABLE).orderBy(SQLSchema.RUN_ID.asc()).getSQL(), ROW_MAPPER);
     }
 

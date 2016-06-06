@@ -39,7 +39,7 @@ public abstract class AbstractJdbcTimetableRepository implements TimetableReposi
     private JdbcOperations jdbcOperations;
 
     @Override
-    public List<SchedulingParams> getTasks() {
+    public List<SchedulingParams> getAll() {
         Query query = DSL().select().from(SQLSchema.TIMETABLE_TABLE);
         return jdbcOperations.query(query.getSQL(), ROW_MAPPER);
     }

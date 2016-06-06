@@ -83,7 +83,7 @@ public abstract class AbstractJdbcRunsRepository implements RunsRepository {
     }
 
     @Override
-    public List<Run> getRuns() {
+    public List<Run> getAll() {
         return jdbcOperations.query(DSL().select().from(getRunsTable()).getSQL(), ROW_MAPPER);
     }
 

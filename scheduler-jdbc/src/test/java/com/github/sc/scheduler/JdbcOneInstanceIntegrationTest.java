@@ -42,13 +42,13 @@ public class JdbcOneInstanceIntegrationTest {
                     Integer.toString(i),
                     new EngineRequirementsImpl(i % 100, SimpleExecutor.class.getName(), "main")
             ));
-            taskArgsRepository.save(task.getId(), TaskArgsImpl.builder()
+            taskArgsRepository.save(task.getId(), TaskArgsImpl.builder(task.getId())
                     .put("name", Integer.toString(i))
                     .build());
             timetableRepository.save(SchedulingParamsImpl.builder(task.getId(), SchedulingType.ONCE, null).build());
         }
 
-        while (historyRunsRepository.getRuns().size() != 100) {
+        while (historyRunsRepository.getAll().size() != 100) {
             Thread.sleep(100);
         }
     }

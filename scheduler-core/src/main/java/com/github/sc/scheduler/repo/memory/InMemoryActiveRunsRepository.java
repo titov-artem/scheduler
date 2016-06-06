@@ -11,8 +11,8 @@ import java.util.List;
 public class InMemoryActiveRunsRepository extends InMemoryRunsRepository implements ActiveRunsRepository {
 
     @Override
-    public List<Run> getRuns() {
-        List<Run> runs = super.getRuns();
+    public List<Run> getAll() {
+        List<Run> runs = super.getAll();
         Collections.sort(runs, (o1, o2) -> Long.compare(o1.getRunId(), o2.getRunId()));
         return runs;
     }

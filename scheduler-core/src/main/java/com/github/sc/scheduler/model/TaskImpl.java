@@ -1,7 +1,6 @@
 package com.github.sc.scheduler.model;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.util.Objects;
 import java.util.Optional;
@@ -19,8 +18,12 @@ public class TaskImpl implements Task {
         this.engineRequirements = engineRequirements;
     }
 
-    public static Task newTask(@Nullable String name, EngineRequirements engineRequirements) {
+    public static Task newTask(String name, EngineRequirements engineRequirements) {
         return new TaskImpl(null, Optional.ofNullable(name), engineRequirements);
+    }
+
+    public static Task newTask(EngineRequirements engineRequirements) {
+        return new TaskImpl(null, Optional.empty(), engineRequirements);
     }
 
     @Nonnull

@@ -47,7 +47,7 @@ public class InMemoryRunsRepository implements RunsRepository {
     }
 
     @Override
-    public List<Run> getRuns() {
+    public List<Run> getAll() {
         List<Run> out = new ArrayList<>();
         for (final RunContainer container : data.values()) {
             out.add(container.run.get());

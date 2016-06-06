@@ -32,9 +32,16 @@
             </bean>
         </property>
         <property name="service" value="${scheduler.engine.service}"/>
-        <property name="threadCount" value="${scheduler.engine.threads}"/>
+        <property name="threadsCount" value="${scheduler.engine.threads}"/>
         <property name="capacity" value="${scheduler.engine.capacity}"/>
         <property name="pickPeriod" value="${scheduler.engine.periodSeconds}"/>
+    </bean>
+
+    <bean id="taskService" class="com.github.sc.scheduler.service.impl.TaskServiceImpl">
+        <property name="timetableRepository" ref="timetableRepository"/>
+        <property name="taskArgsRepository" ref="taskParamsRepository"/>
+        <property name="taskRepository" ref="taskRepository"/>
+        <property name="transactionSupport" ref="transactionSupport"/>
     </bean>
 
 </beans>

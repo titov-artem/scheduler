@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public interface TimetableRepository {
 
-    List<SchedulingParams> getTasks();
+    List<SchedulingParams> getAll();
 
     Optional<SchedulingParams> getTask(String taskId);
 

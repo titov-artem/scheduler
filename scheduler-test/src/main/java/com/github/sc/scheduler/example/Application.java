@@ -10,9 +10,9 @@ public class Application {
 
     /*
     start transaction;
-    insert into sch_task (task_id, name, service, executor, weight) values ('3','Simple periodic task', 'main', 'SleepTaskExecutor', 1);
-    insert into sch_task_args (task_id, name, value) values ('3', 'time', '1000');
-    insert into sch_timetable (task_id, type, param) values ('3', 'PERIOD', '3600');
+    insert into sch_task (task_id, name, service, executor, weight) values ('1','Simple periodic task', 'main', 'com.github.sc.scheduler.example.SleepTaskExecutor', 1);
+    insert into sch_task_args (task_id, name, value) values ('1', 'time', '1000');
+    insert into sch_timetable (task_id, type, param) values ('1', 'PERIOD', '1');
     commit;
      */
 }

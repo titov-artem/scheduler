@@ -38,7 +38,7 @@ public abstract class AbstractJdbcTimetableRepositoryTest {
     }
 
     @Test
-    public void testGetRuns() throws Exception {
+    public void testGetAll() throws Exception {
         SchedulingParams run = builder("task1", SchedulingType.ONCE, null)
                 .withLastRunTime(Instant.now().truncatedTo(SECONDS))
                 .withStartingHost("host")
@@ -51,7 +51,7 @@ public abstract class AbstractJdbcTimetableRepositoryTest {
         assertThat(task.isPresent(), is(true));
         assertThat(task.get(), is(run));
 
-        List<SchedulingParams> tasks = timetableRepository.getTasks();
+        List<SchedulingParams> tasks = timetableRepository.getAll();
         assertThat(tasks.size(), is(1));
         assertThat(tasks.get(0), is(run));
     }
@@ -130,9 +130,9 @@ public abstract class AbstractJdbcTimetableRepositoryTest {
         timetableRepository.save(run);
 
 
-        List<SchedulingParams> before = timetableRepository.getTasks();
+        List<SchedulingParams> before = timetableRepository.getAll();
         timetableRepository.removeTask("task1");
-        List<SchedulingParams> after = timetableRepository.getTasks();
+        List<SchedulingParams> after = timetableRepository.getAll();
         assertThat(before.size(), is(1));
         assertThat(after.size(), is(0));
     }
@@ -148,9 +148,9 @@ public abstract class AbstractJdbcTimetableRepositoryTest {
         timetableRepository.save(run);
 
 
-        List<SchedulingParams> before = timetableRepository.getTasks();
+        List<SchedulingParams> before = timetableRepository.getAll();
         timetableRepository.removeTasks(Collections.singleton("task1"));
-        List<SchedulingParams> after = timetableRepository.getTasks();
+        List<SchedulingParams> after = timetableRepository.getAll();
         assertThat(before.size(), is(1));
         assertThat(after.size(), is(0));
     }

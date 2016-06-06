@@ -36,6 +36,10 @@ public class SchedulingParamsImpl implements SchedulingParams {
         return new Builder(instance);
     }
 
+    public static Builder builder(String taskId, SchedulingParams instance) {
+        return new Builder(taskId, instance);
+    }
+
     public static Builder builder(String taskId, SchedulingType type, String param) {
         return new Builder(taskId, type, param);
     }
@@ -113,6 +117,17 @@ public class SchedulingParamsImpl implements SchedulingParams {
 
         private Builder(String taskId, SchedulingType type, String param) {
             instance = new SchedulingParamsImpl(taskId, type, param, null, null, null, 1);
+        }
+
+        private Builder(String taskId, SchedulingParams instance) {
+            this.instance = new SchedulingParamsImpl(
+                    taskId,
+                    instance.getType(),
+                    instance.getParam(),
+                    instance.getLastRunTime(),
+                    instance.getStartingHost(),
+                    instance.getStartingTime(),
+                    instance.getVersion());
         }
 
         private Builder(SchedulingParams instance) {

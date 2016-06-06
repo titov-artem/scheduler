@@ -11,6 +11,10 @@ public interface EngineDescriptor {
 
     int getFreeCapacity();
 
+    int getMaxThreads();
+
+    int getFreeThreads();
+
     @Nonnull
     String getService();
 

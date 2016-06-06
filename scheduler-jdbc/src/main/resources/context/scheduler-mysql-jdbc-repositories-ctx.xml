@@ -28,4 +28,8 @@
         <property name="jdbcOperations" ref="jdbcOperations"/>
     </bean>
 
+    <bean id="transactionSupport" class="com.github.sc.scheduler.utils.JdbcTransactionSupport">
+        <property name="transactionOperations" ref="transactionOperations"/>
+    </bean>
+
 </beans>

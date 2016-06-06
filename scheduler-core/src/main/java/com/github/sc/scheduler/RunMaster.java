@@ -129,7 +129,7 @@ public class RunMaster implements Runnable {
     }
 
     private void restoreLastRunTime() {
-        List<SchedulingParams> tasks = timetableRepository.getTasks();
+        List<SchedulingParams> tasks = timetableRepository.getAll();
         Multimap<String, Run> activeRuns = activeRunsRepository.getRuns(
                 tasks.stream().map(SchedulingParams::getTaskId).collect(toList())
         );
@@ -159,7 +159,7 @@ public class RunMaster implements Runnable {
 
     private void restoreStartingHost() {
         final Instant now = Instant.now(clock);
-        List<SchedulingParams> tasks = timetableRepository.getTasks();
+        List<SchedulingParams> tasks = timetableRepository.getAll();
         tasks.stream()
                 .filter(t -> t.getStartingHost() != null)
                 .filter(t -> !isAfter(t.getStartingTime(), t.getLastRunTime()) ||
@@ -178,7 +178,7 @@ public class RunMaster implements Runnable {
         final Instant now = Instant.now(clock);
         // load time table
         log.info("Run master begin task starting at {}", now);
-        List<SchedulingParams> tasks = timetableRepository.getTasks();
+        List<SchedulingParams> tasks = timetableRepository.getAll();
         log.info("Found {} tasks.", tasks.size());
         // found tasks to start
         Map<String, SchedulingParams> tasksToStart = tasks.stream()
@@ -247,7 +247,7 @@ public class RunMaster implements Runnable {
     }
 
     private void archiveCompletedRuns() {
-        List<Run> runs = activeRunsRepository.getRuns();
+        List<Run> runs = activeRunsRepository.getAll();
         List<Run> completedRuns = runs.stream()
                 .filter(r -> r.getEndTime() != null)
                 .collect(toList());

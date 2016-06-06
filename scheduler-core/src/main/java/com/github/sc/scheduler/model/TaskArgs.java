@@ -10,6 +10,8 @@ import java.util.List;
  */
 public interface TaskArgs {
 
+    String getTaskId();
+
     Collection<String> getNames();
 
     @Nullable

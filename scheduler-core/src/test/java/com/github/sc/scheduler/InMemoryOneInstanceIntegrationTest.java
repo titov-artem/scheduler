@@ -46,7 +46,7 @@ public class InMemoryOneInstanceIntegrationTest {
         engine.setClock(clock);
         engine.setHostProvider(new FromPropertySchedulerHostProvider("localhost"));
         engine.setCapacity(100);
-        engine.setThreadCount(2);
+        engine.setThreadsCount(2);
         engine.setService("main");
         engine.setPickPeriod(1);
 
@@ -59,13 +59,13 @@ public class InMemoryOneInstanceIntegrationTest {
                     Integer.toString(i),
                     new EngineRequirementsImpl(i % 100, SimpleExecutor.class.getName(), "main")
             ));
-            taskParamsRepository.save(task.getId(), TaskArgsImpl.builder()
+            taskParamsRepository.save(task.getId(), TaskArgsImpl.builder(task.getId())
                     .put("name", Integer.toString(i))
                     .build());
             timetableRepository.save(SchedulingParamsImpl.builder(task.getId(), SchedulingType.ONCE, null).build());
         }
 
-        while (historyRunsRepository.getRuns().size() != 1000) {
+        while (historyRunsRepository.getAll().size() != 1000) {
             Thread.sleep(100);
         }
         runMaster.destroy();

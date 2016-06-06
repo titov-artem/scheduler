@@ -12,11 +12,15 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
 
+import java.util.List;
 import java.util.Optional;
+
+import static com.github.sc.scheduler.repo.jdbc.SQLSchema.TASK_ID;
+import static com.github.sc.scheduler.repo.jdbc.SQLSchema.TASK_TABLE;
 
 public abstract class AbstractJdbcTaskRepository implements TaskRepository {
 
-    public static final RowMapper<TaskImpl> ROW_MAPPER = (rs, i) ->
+    public static final RowMapper<Task> ROW_MAPPER = (rs, i) ->
             new TaskImpl(
                     rs.getString(SQLSchema.TASK_ID.getName()),
                     Optional.ofNullable(rs.getString(SQLSchema.NAME.getName())),
@@ -30,8 +34,14 @@ public abstract class AbstractJdbcTaskRepository implements TaskRepository {
     private JdbcOperations jdbcOperations;
 
     @Override
+    public List<Task> getAll() {
+        Query query = DSL().select().from(TASK_TABLE);
+        return jdbcOperations.query(query.getSQL(), ROW_MAPPER);
+    }
+
+    @Override
     public Optional<Task> get(String taskId) {
-        Query query = DSL().select().from(SQLSchema.TASK_TABLE).where(SQLSchema.TASK_ID.eq(taskId));
+        Query query = DSL().select().from(TASK_TABLE).where(SQLSchema.TASK_ID.eq(taskId));
         try {
             return Optional.of(jdbcOperations.queryForObject(query.getSQL(), ROW_MAPPER, query.getBindValues().toArray()));
         } catch (IncorrectResultSizeDataAccessException ignore) {
@@ -42,7 +52,7 @@ public abstract class AbstractJdbcTaskRepository implements TaskRepository {
     @Override
     public Task create(Task task) {
         String taskId = IdGenerator.nextId();
-        Query query = DSL().insertInto(SQLSchema.TASK_TABLE)
+        Query query = DSL().insertInto(TASK_TABLE)
                 .set(SQLSchema.TASK_ID, taskId)
                 .set(SQLSchema.NAME, task.getName().orElse(null))
                 .set(SQLSchema.WEIGHT, task.getEngineRequirements().getWeight())
@@ -50,6 +60,12 @@ public abstract class AbstractJdbcTaskRepository implements TaskRepository {
                 .set(SQLSchema.SERVICE, task.getEngineRequirements().getService());
         jdbcOperations.update(query.getSQL(), query.getBindValues().toArray());
         return new TaskImpl(taskId, task.getName(), task.getEngineRequirements());
+    }
+
+    @Override
+    public void remove(String taskId) {
+        Query query = DSL().delete(TASK_TABLE).where(TASK_ID.eq(taskId));
+        jdbcOperations.update(query.getSQL(), query.getBindValues().toArray());
     }
 
     protected abstract DSLContext DSL();

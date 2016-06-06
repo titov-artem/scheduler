@@ -15,7 +15,7 @@ public interface RunsRepository {
     /**
      * @return maybe empty list of all runs without any ordering guaranties
      */
-    List<Run> getRuns();
+    List<Run> getAll();
 
     /**
      * Return all runs for specified task without any ordering guaranties

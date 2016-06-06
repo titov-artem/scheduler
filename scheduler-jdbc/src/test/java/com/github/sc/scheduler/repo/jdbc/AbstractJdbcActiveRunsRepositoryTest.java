@@ -64,7 +64,7 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
         Run created2 = activeRunsRepository.create(run2);
         Run created3 = activeRunsRepository.create(run3);
 
-        List<Run> runs = activeRunsRepository.getRuns();
+        List<Run> runs = activeRunsRepository.getAll();
         assertThat(runs.size(), is(3));
         assertThat(runs.get(0), is(created1));
         assertThat(runs.get(1), is(created2));
@@ -75,7 +75,7 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
     public void testStoringFullRun() throws Exception {
         Run run = buildRun();
         Run created = activeRunsRepository.create(run);
-        List<Run> runs = activeRunsRepository.getRuns();
+        List<Run> runs = activeRunsRepository.getAll();
 
         assertThat(runs.size(), is(1));
         assertThat(runs.get(0), is(created));
@@ -105,7 +105,7 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
                 Instant.now().truncatedTo(SECONDS)
         ).build();
         Run created = activeRunsRepository.create(run);
-        List<Run> runs = activeRunsRepository.getRuns();
+        List<Run> runs = activeRunsRepository.getAll();
 
         assertThat(runs.size(), is(1));
         assertThat(runs.get(0), is(created));
@@ -136,7 +136,7 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
         ).build();
         Run created = activeRunsRepository.create(run);
         activeRunsRepository.createIfNotExists(Collections.singleton(created));
-        List<Run> runs = activeRunsRepository.getRuns();
+        List<Run> runs = activeRunsRepository.getAll();
 
         assertThat(runs.size(), is(1));
         assertThat(runs.get(0), is(created));
@@ -152,7 +152,7 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
         ).build();
 
         activeRunsRepository.createIfNotExists(Collections.singleton(run));
-        List<Run> runs = activeRunsRepository.getRuns();
+        List<Run> runs = activeRunsRepository.getAll();
 
         assertThat(runs.size(), is(1));
         assertThat(runs.get(0), is(run));
@@ -184,7 +184,7 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
         activeRunsRepository.createIfNotExists(ImmutableList.of(
                 run1, run2, run3
         ));
-        List<Run> runs = activeRunsRepository.getRuns();
+        List<Run> runs = activeRunsRepository.getAll();
 
         assertThat(runs.size(), is(3));
         assertThat(runs.get(0), is(run1));
@@ -221,9 +221,9 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
     public void testRemove() throws Exception {
         Run run = buildRun();
         Run created = activeRunsRepository.create(run);
-        List<Run> before = activeRunsRepository.getRuns();
+        List<Run> before = activeRunsRepository.getAll();
         activeRunsRepository.remove(Collections.singleton(created));
-        List<Run> after = activeRunsRepository.getRuns();
+        List<Run> after = activeRunsRepository.getAll();
         assertThat(before.size(), is(1));
         assertThat(after.size(), is(0));
     }

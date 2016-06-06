@@ -1,6 +1,7 @@
 dependencies {
     compile project(':scheduler-core')
     compile project(':scheduler-jdbc')
+    compile project(':scheduler-http')
 
     compile 'commons-dbcp:commons-dbcp:1.4'
     compile 'org.postgresql:postgresql:9.4.1208'
@@ -11,6 +12,16 @@ dependencies {
 
     compile 'org.springframework:spring-beans:4.1.6.RELEASE'
     compile 'org.springframework:spring-context:4.1.6.RELEASE'
+
+    compile 'org.eclipse.jetty:jetty-util:9.0.4.v20130625'
+    compile 'org.eclipse.jetty:jetty-server:9.0.4.v20130625'
+    compile 'org.eclipse.jetty:jetty-servlet:9.0.4.v20130625'
+
+    compile 'org.apache.cxf:cxf-rt-frontend-jaxrs:3.0.4'
+    compile 'org.apache.cxf:cxf-rt-rs-service-description:3.0.4'
+    compile 'com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:2.7.4'
+//    compile 'com.fasterxml.jackson.jaxrs:jackson-databinding:2.2.2'
+    compile 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.4'
 }
 
 jar {

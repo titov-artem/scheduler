@@ -51,7 +51,7 @@ public class Engine {
 
     /* Properties */
     private String host;
-    private int threadCount;
+    private int threadsCount;
     private int capacity;
     private String service;
     private long pickPeriod = DEFAULT_PICK_PERIOD;
@@ -76,8 +76,8 @@ public class Engine {
 
     @PostConstruct
     public void start() {
-        state = new EngineState(threadCount, capacity);
-        executorService = Executors.newFixedThreadPool(threadCount);
+        state = new EngineState(threadsCount, capacity);
+        executorService = Executors.newFixedThreadPool(threadsCount);
         localTaskScheduler.scheduleWithFixRate(getClass().getSimpleName(), this::run, 0, pickPeriod, TimeUnit.SECONDS);
     }
 
@@ -124,7 +124,7 @@ public class Engine {
         restoreAcquiredRuns();
         restoreHangedRuns();
 
-        List<Run> runs = activeRunsRepository.getRuns();
+        List<Run> runs = activeRunsRepository.getAll();
         if (runs.isEmpty()) {
             log.trace("No any task in the queue");
             return;
@@ -185,7 +185,7 @@ public class Engine {
      */
     private void restoreAcquiredRuns() {
         Instant now = Instant.now(clock);
-        activeRunsRepository.getRuns().stream()
+        activeRunsRepository.getAll().stream()
                 .filter(r -> r.getStatus() == Run.Status.PENDING)
                 .filter(r -> r.getHost() != null)
                 .filter(r -> r.getAcquiredTime() != null && r.getAcquiredTime().plus(START_INTERVAL).isBefore(now))
@@ -200,7 +200,7 @@ public class Engine {
 
     private void restoreHangedRuns() {
         Instant now = Instant.now(clock);
-        activeRunsRepository.getRuns().stream()
+        activeRunsRepository.getAll().stream()
                 .filter(r -> r.getStatus() == Run.Status.RUNNING)
                 .filter(r -> r.getPingTime() != null && r.getPingTime().plusSeconds(pickPeriod * 3).isBefore(now))
                 .peek(r -> log.trace("Failing hanged run {} for task {}", r.getRunId(), r.getTaskId()))
@@ -290,6 +290,16 @@ public class Engine {
             @Override
             public int getFreeCapacity() {
                 return capacity.freeCapacity;
+            }
+
+            @Override
+            public int getMaxThreads() {
+                return Engine.this.threadsCount;
+            }
+
+            @Override
+            public int getFreeThreads() {
+                return capacity.freeThreads;
             }
 
             @Nonnull
@@ -402,8 +412,8 @@ public class Engine {
     }
 
     @Required
-    public void setThreadCount(int threadCount) {
-        this.threadCount = threadCount;
+    public void setThreadsCount(int threadsCount) {
+        this.threadsCount = threadsCount;
     }
 
     @Required

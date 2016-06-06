@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="apiEndpoint" parent="baseServerEndpoint">
+        <property name="address" value="/api"/>
+        <property name="serviceBeans">
+            <list>
+                <ref bean="taskController"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="taskController" class="com.github.sc.scheduler.http.impl.TaskControllerImpl">
+        <property name="timetableRepository" ref="timetableRepository"/>
+        <property name="taskArgsRepository" ref="taskParamsRepository"/>
+        <property name="activeRunsRepository" ref="activeRunsRepository"/>
+        <property name="taskService" ref="taskService"/>
+        <property name="taskRepository" ref="taskRepository"/>
+    </bean>
+
+
+</beans>
