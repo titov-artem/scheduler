@@ -17,6 +17,8 @@ public class RunView {
     private final Instant startTime;
     private final Instant endTime;
     private final Instant pingTime;
+    private final boolean restartOnFail;
+    private final boolean restartOnReboot;
     private final String message;
     private final EngineRequirementsDto engineRequirements;
 
@@ -30,6 +32,8 @@ public class RunView {
         this.startTime = run.getStartTime();
         this.endTime = run.getEndTime();
         this.pingTime = run.getPingTime();
+        this.restartOnFail = run.isRestartOnFail();
+        this.restartOnReboot = run.isRestartOnReboot();
         this.message = run.getMessage();
         this.engineRequirements = new EngineRequirementsDto(run.getEngineRequirements());
     }
@@ -77,6 +81,16 @@ public class RunView {
     @JsonGetter
     public Instant getPingTime() {
         return pingTime;
+    }
+
+    @JsonGetter
+    public boolean isRestartOnFail() {
+        return restartOnFail;
+    }
+
+    @JsonGetter
+    public boolean isRestartOnReboot() {
+        return restartOnReboot;
     }
 
     @JsonGetter

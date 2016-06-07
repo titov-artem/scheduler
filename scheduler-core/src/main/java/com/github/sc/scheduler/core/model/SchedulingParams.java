@@ -30,8 +30,6 @@ public interface SchedulingParams {
     @Nullable
     String getParam();
 
-    // todo maybe put it in task, or put engine requirements here
-
     /**
      * Number of task that can be executed concurrently. Run master will start this number of tasks on the first
      * run and then will keep this level on each next run time. For example if on the next run time there will be some

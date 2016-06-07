@@ -14,47 +14,54 @@ CREATE TABLE sch_task_args (
 CREATE INDEX ON sch_task_args (task_id);
 
 CREATE TABLE sch_timetable (
-  task_id  VARCHAR(128) NOT NULL PRIMARY KEY,
-  name     VARCHAR(128) DEFAULT NULL,
-  service  VARCHAR(128) NOT NULL,
-  executor VARCHAR(512) NOT NULL,
-  weight   INTEGER      NOT NULL,
-  type     VARCHAR(32)  NOT NULL,
-  param    VARCHAR(128) DEFAULT NULL
+  task_id           VARCHAR(128) NOT NULL PRIMARY KEY,
+  name              VARCHAR(128) DEFAULT NULL,
+  service           VARCHAR(128) NOT NULL,
+  executor          VARCHAR(512) NOT NULL,
+  weight            INTEGER      NOT NULL,
+  type              VARCHAR(32)  NOT NULL,
+  param             VARCHAR(128) DEFAULT NULL,
+  concurrency_level INTEGER      DEFAULT 0,
+  restart_on_fail   BOOLEAN      DEFAULT FALSE,
+  restart_on_reboot BOOLEAN      DEFAULT FALSE
 );
 
 CREATE TABLE sch_run (
-  run_id        BIGSERIAL    NOT NULL PRIMARY KEY,
-  task_id       VARCHAR(128) NOT NULL,
-  service       VARCHAR(128) NOT NULL,
-  executor      VARCHAR(512) NOT NULL,
-  weight        INTEGER      NOT NULL,
-  status        VARCHAR(32)  NOT NULL,
-  queued_time   TIMESTAMP    NOT NULL,
-  host          VARCHAR(128)                      DEFAULT NULL,
-  acquired_time TIMESTAMP                         DEFAULT NULL,
-  start_time    TIMESTAMP                         DEFAULT NULL,
-  ping_time     TIMESTAMP                         DEFAULT NULL,
-  end_time      TIMESTAMP                         DEFAULT NULL,
-  message       VARCHAR(512)                      DEFAULT NULL,
-  version       INTEGER      NOT NULL             DEFAULT 1
+  run_id            BIGSERIAL    NOT NULL PRIMARY KEY,
+  task_id           VARCHAR(128) NOT NULL,
+  service           VARCHAR(128) NOT NULL,
+  executor          VARCHAR(512) NOT NULL,
+  weight            INTEGER      NOT NULL,
+  status            VARCHAR(32)  NOT NULL,
+  queued_time       TIMESTAMP    NOT NULL,
+  host              VARCHAR(128)                      DEFAULT NULL,
+  acquired_time     TIMESTAMP                         DEFAULT NULL,
+  start_time        TIMESTAMP                         DEFAULT NULL,
+  ping_time         TIMESTAMP                         DEFAULT NULL,
+  end_time          TIMESTAMP                         DEFAULT NULL,
+  restart_on_fail   BOOLEAN                           DEFAULT FALSE,
+  restart_on_reboot BOOLEAN                           DEFAULT FALSE,
+  message           VARCHAR(512)                      DEFAULT NULL,
+  version           INTEGER      NOT NULL             DEFAULT 1
 );
 CREATE INDEX ON sch_run (task_id);
 
 CREATE TABLE sch_history_run (
-  run_id        BIGSERIAL    NOT NULL PRIMARY KEY,
-  task_id       VARCHAR(128) NOT NULL,
-  service       VARCHAR(128) NOT NULL,
-  executor      VARCHAR(512) NOT NULL,
-  weight        INTEGER      NOT NULL,
-  status        VARCHAR(32)  NOT NULL,
-  queued_time   TIMESTAMP    NOT NULL,
-  host          VARCHAR(128)                      DEFAULT NULL,
-  acquired_time TIMESTAMP                         DEFAULT NULL,
-  start_time    TIMESTAMP                         DEFAULT NULL,
-  ping_time     TIMESTAMP                         DEFAULT NULL,
-  end_time      TIMESTAMP                         DEFAULT NULL,
-  message       VARCHAR(512)                      DEFAULT NULL,
-  version       INTEGER      NOT NULL             DEFAULT 1
+  run_id            BIGSERIAL    NOT NULL PRIMARY KEY,
+  task_id           VARCHAR(128) NOT NULL,
+  service           VARCHAR(128) NOT NULL,
+  executor          VARCHAR(512) NOT NULL,
+  weight            INTEGER      NOT NULL,
+  status            VARCHAR(32)  NOT NULL,
+  queued_time       TIMESTAMP    NOT NULL,
+  host              VARCHAR(128)                      DEFAULT NULL,
+  acquired_time     TIMESTAMP                         DEFAULT NULL,
+  start_time        TIMESTAMP                         DEFAULT NULL,
+  ping_time         TIMESTAMP                         DEFAULT NULL,
+  end_time          TIMESTAMP                         DEFAULT NULL,
+  restart_on_fail   BOOLEAN                           DEFAULT FALSE,
+  restart_on_reboot BOOLEAN                           DEFAULT FALSE,
+  message           VARCHAR(512)                      DEFAULT NULL,
+  version           INTEGER      NOT NULL             DEFAULT 1
 );
 CREATE INDEX ON sch_history_run (task_id);

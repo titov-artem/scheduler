@@ -35,7 +35,9 @@ public abstract class AbstractJdbcTimetableRepository implements TimetableReposi
                     ),
                     SchedulingType.valueOf(rs.getString(SQLSchema.TYPE.getName())),
                     rs.getString(SQLSchema.PARAM.getName()),
-                    0, false, false
+                    rs.getInt(SQLSchema.CONCURRENCY_LEVEL.getName()),
+                    rs.getBoolean(SQLSchema.RESTART_ON_FAIL.getName()),
+                    rs.getBoolean(SQLSchema.RESTART_ON_REBOOT.getName())
             ).build();
 
 
@@ -62,7 +64,10 @@ public abstract class AbstractJdbcTimetableRepository implements TimetableReposi
                 .set(SQLSchema.EXECUTOR, params.getEngineRequirements().getExecutor())
                 .set(SQLSchema.SERVICE, params.getEngineRequirements().getService())
                 .set(SQLSchema.TYPE, params.getType().name())
-                .set(SQLSchema.PARAM, params.getParam());
+                .set(SQLSchema.PARAM, params.getParam())
+                .set(SQLSchema.CONCURRENCY_LEVEL, params.getConcurrencyLevel())
+                .set(SQLSchema.RESTART_ON_FAIL, params.isRestartOnFail())
+                .set(SQLSchema.RESTART_ON_REBOOT, params.isRestartOnReboot());
         jdbcOperations.update(query.getSQL(), query.getBindValues().toArray());
         return SchedulingParamsImpl.builder(params).withTaskId(taskId).build();
     }

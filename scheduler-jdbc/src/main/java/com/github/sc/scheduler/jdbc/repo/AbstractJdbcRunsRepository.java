@@ -42,6 +42,8 @@ public abstract class AbstractJdbcRunsRepository implements RunsRepository {
                             rs.getString(SQLSchema.EXECUTOR.getName()),
                             rs.getString(SQLSchema.SERVICE.getName())
                     ),
+                    rs.getBoolean(SQLSchema.RESTART_ON_FAIL.getName()),
+                    rs.getBoolean(SQLSchema.RESTART_ON_REBOOT.getName()),
                     Run.Status.valueOf(rs.getString(SQLSchema.STATUS.getName())),
                     SqlDateUtils.toInstant(rs.getTimestamp(SQLSchema.QUEUED_TIME.getName()))
             )
@@ -124,11 +126,14 @@ public abstract class AbstractJdbcRunsRepository implements RunsRepository {
                 .set(SQLSchema.START_TIME, SqlDateUtils.toTimestamp(run.getStartTime()))
                 .set(SQLSchema.PING_TIME, SqlDateUtils.toTimestamp(run.getPingTime()))
                 .set(SQLSchema.END_TIME, SqlDateUtils.toTimestamp(run.getEndTime()))
+                .set(SQLSchema.RESTART_ON_FAIL, run.isRestartOnFail())
+                .set(SQLSchema.RESTART_ON_REBOOT, run.isRestartOnReboot())
                 .set(SQLSchema.MESSAGE, run.getMessage())
                 .set(SQLSchema.VERSION, run.getVersion());
         PreparedStatementCreatorFactory pscf = new PreparedStatementCreatorFactory(query.getSQL(),
                 Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 Types.TIMESTAMP, Types.TIMESTAMP, Types.VARCHAR, Types.TIMESTAMP, Types.TIMESTAMP, Types.TIMESTAMP,
+                Types.BOOLEAN, Types.BOOLEAN,
                 Types.VARCHAR, Types.INTEGER);
         pscf.setReturnGeneratedKeys(true);
         PreparedStatementCreator psc = pscf.newPreparedStatementCreator(query.getBindValues());
@@ -162,6 +167,8 @@ public abstract class AbstractJdbcRunsRepository implements RunsRepository {
                     .set(SQLSchema.START_TIME, SqlDateUtils.toTimestamp(run.getStartTime()))
                     .set(SQLSchema.PING_TIME, SqlDateUtils.toTimestamp(run.getPingTime()))
                     .set(SQLSchema.END_TIME, SqlDateUtils.toTimestamp(run.getEndTime()))
+                    .set(SQLSchema.RESTART_ON_FAIL, run.isRestartOnFail())
+                    .set(SQLSchema.RESTART_ON_REBOOT, run.isRestartOnReboot())
                     .set(SQLSchema.MESSAGE, run.getMessage())
                     .set(SQLSchema.VERSION, run.getVersion())
                     .onDuplicateKeyIgnore();
@@ -189,6 +196,8 @@ public abstract class AbstractJdbcRunsRepository implements RunsRepository {
                 .set(SQLSchema.START_TIME, SqlDateUtils.toTimestamp(run.getStartTime()))
                 .set(SQLSchema.PING_TIME, SqlDateUtils.toTimestamp(run.getPingTime()))
                 .set(SQLSchema.END_TIME, SqlDateUtils.toTimestamp(run.getEndTime()))
+                .set(SQLSchema.RESTART_ON_FAIL, run.isRestartOnFail())
+                .set(SQLSchema.RESTART_ON_REBOOT, run.isRestartOnReboot())
                 .set(SQLSchema.MESSAGE, run.getMessage())
                 .set(SQLSchema.VERSION, run.getVersion() + 1)
                 .where(SQLSchema.RUN_ID.eq(run.getRunId()))

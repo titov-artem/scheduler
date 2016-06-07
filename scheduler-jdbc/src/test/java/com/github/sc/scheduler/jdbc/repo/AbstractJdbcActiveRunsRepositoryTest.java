@@ -42,18 +42,21 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
         Run run1 = RunImpl.builder(Run.FAKE_RUN_ID,
                 "task1",
                 new EngineRequirementsImpl(1, "Executor", "Service"),
+                true, true,
                 Run.Status.PENDING,
                 Instant.now().truncatedTo(SECONDS)
         ).build();
         Run run2 = RunImpl.builder(Run.FAKE_RUN_ID,
                 "task2",
                 new EngineRequirementsImpl(1, "Executor", "Service"),
+                true, false,
                 Run.Status.PENDING,
                 Instant.now().truncatedTo(SECONDS)
         ).build();
         Run run3 = RunImpl.builder(Run.FAKE_RUN_ID,
                 "task3",
                 new EngineRequirementsImpl(1, "Executor", "Service"),
+                false, true,
                 Run.Status.PENDING,
                 Instant.now().truncatedTo(SECONDS)
         ).build();
@@ -99,6 +102,7 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
         Run run = RunImpl.builder(Run.FAKE_RUN_ID,
                 "task1",
                 new EngineRequirementsImpl(1, "Executor", "Service"),
+                true, true,
                 Run.Status.PENDING,
                 Instant.now().truncatedTo(SECONDS)
         ).build();
@@ -129,6 +133,7 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
         Run run = RunImpl.builder(Run.FAKE_RUN_ID,
                 "task1",
                 new EngineRequirementsImpl(1, "Executor", "Service"),
+                true, true,
                 Run.Status.PENDING,
                 Instant.now().truncatedTo(SECONDS)
         ).build();
@@ -145,6 +150,7 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
         Run run = RunImpl.builder(1,
                 "task1",
                 new EngineRequirementsImpl(1, "Executor", "Service"),
+                true, true,
                 Run.Status.PENDING,
                 Instant.now().truncatedTo(SECONDS)
         ).build();
@@ -161,18 +167,21 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
         Run run1 = RunImpl.builder(1,
                 "task1",
                 new EngineRequirementsImpl(1, "Executor", "Service"),
+                true, true,
                 Run.Status.PENDING,
                 Instant.now().truncatedTo(SECONDS)
         ).build();
         Run run2 = RunImpl.builder(2,
                 "task1",
                 new EngineRequirementsImpl(1, "Executor", "Service"),
+                true, false,
                 Run.Status.PENDING,
                 Instant.now().truncatedTo(SECONDS)
         ).build();
         Run run3 = RunImpl.builder(3,
                 "task1",
                 new EngineRequirementsImpl(1, "Executor", "Service"),
+                false, true,
                 Run.Status.PENDING,
                 Instant.now().truncatedTo(SECONDS)
         ).build();
@@ -242,6 +251,7 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
         return RunImpl.builder(Run.FAKE_RUN_ID,
                 "task1",
                 new EngineRequirementsImpl(1, "Executor", "Service"),
+                true, true,
                 Run.Status.PENDING,
                 Instant.now().truncatedTo(SECONDS)
         )

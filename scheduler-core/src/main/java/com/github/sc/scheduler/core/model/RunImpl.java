@@ -19,8 +19,8 @@ public class RunImpl implements Run {
     private final Instant pingTime;
     private final Instant endTime;
     private final Status status;
-    private boolean restartOnFail;
-    private boolean restartOnReboot;
+    private final boolean restartOnFail;
+    private final boolean restartOnReboot;
     private final String message;
     private final int version;
 
@@ -70,16 +70,6 @@ public class RunImpl implements Run {
                                   Status status,
                                   Instant queuedTime) {
         return new Builder(runId, taskId, engineRequirements, restartOnFail, restartOnReboot, status, queuedTime);
-    }
-
-    // todo remove me while implementing restartOnFail, restartOnReboot
-    @Deprecated
-    public static Builder builder(long runId,
-                                  String taskId,
-                                  EngineRequirements engineRequirements,
-                                  Status status,
-                                  Instant queuedTime) {
-        return new Builder(runId, taskId, engineRequirements, false, false, status, queuedTime);
     }
 
     @Override

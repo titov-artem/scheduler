@@ -23,6 +23,9 @@ public class TaskForm {
     private final SchedulingType type;
     @Nullable
     private final String param;
+    private final int concurrencyLevel;
+    private final boolean restartOnFail;
+    private final boolean restartOnReboot;
     @Nullable
     private final TaskArgsDto args;
 
@@ -32,11 +35,17 @@ public class TaskForm {
                     @JsonProperty("engineRequirements") EngineRequirementsDto engineRequirements,
                     @JsonProperty("type") SchedulingType type,
                     @JsonProperty("param") @Nullable String param,
+                    @JsonProperty("concurrencyLevel") int concurrencyLevel,
+                    @JsonProperty("restartOnFail") boolean restartOnFail,
+                    @JsonProperty("restartOnReboot") boolean restartOnReboot,
                     @JsonProperty("args") @Nullable TaskArgsDto args) {
         this.id = id;
         this.name = name;
         this.type = type;
         this.param = param;
+        this.concurrencyLevel = concurrencyLevel;
+        this.restartOnFail = restartOnFail;
+        this.restartOnReboot = restartOnReboot;
         this.args = args;
         this.engineRequirements = engineRequirements;
     }
@@ -49,6 +58,9 @@ public class TaskForm {
                 new EngineRequirementsDto(params.getEngineRequirements()),
                 params.getType(),
                 params.getParam(),
+                params.getConcurrencyLevel(),
+                params.isRestartOnFail(),
+                params.isRestartOnReboot(),
                 taskArgs != null ? new TaskArgsDto(taskArgs) : null
         );
     }
@@ -73,6 +85,21 @@ public class TaskForm {
     @JsonGetter
     public String getParam() {
         return param;
+    }
+
+    @JsonGetter
+    public int getConcurrencyLevel() {
+        return concurrencyLevel;
+    }
+
+    @JsonGetter
+    public boolean isRestartOnFail() {
+        return restartOnFail;
+    }
+
+    @JsonGetter
+    public boolean isRestartOnReboot() {
+        return restartOnReboot;
     }
 
     @Nullable

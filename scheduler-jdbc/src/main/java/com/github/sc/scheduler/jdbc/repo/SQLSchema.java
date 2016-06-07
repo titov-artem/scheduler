@@ -38,6 +38,7 @@ public class SQLSchema {
     /* Scheduling params */
     static final Field<String> TYPE = field("type", String.class);
     static final Field<String> PARAM = field("param", String.class);
+    static final Field<Integer> CONCURRENCY_LEVEL = field("concurrency_level", Integer.class);
 
     /* Task */
     static final Field<LocalDateTime> LAST_RUN_TIME = field("last_run_time", LocalDateTime.class);
@@ -47,8 +48,11 @@ public class SQLSchema {
     /* Common fields */
     // task, run, scheduling params, task params
     static final Field<String> TASK_ID = field("task_id", String.class);
-    // Task, task params
+    // Scheduling params, task arg
     static final Field<String> NAME = field("name", String.class);
-    // Run, scheduling params
+    // Run, task
     static final Field<Integer> VERSION = field("version", Integer.class);
+    // Run, scheduling params
+    static final Field<Boolean> RESTART_ON_FAIL = field("restart_on_fail", Boolean.class);
+    static final Field<Boolean> RESTART_ON_REBOOT = field("restart_on_reboot", Boolean.class);
 }
