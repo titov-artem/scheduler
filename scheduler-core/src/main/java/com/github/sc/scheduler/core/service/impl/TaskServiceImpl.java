@@ -1,9 +1,8 @@
 package com.github.sc.scheduler.core.service.impl;
 
 import com.github.sc.scheduler.core.model.SchedulingParams;
-import com.github.sc.scheduler.core.model.SchedulingParamsImpl;
-import com.github.sc.scheduler.core.model.Task;
 import com.github.sc.scheduler.core.model.TaskArgs;
+import com.github.sc.scheduler.core.model.TaskImpl;
 import com.github.sc.scheduler.core.repo.TaskArgsRepository;
 import com.github.sc.scheduler.core.repo.TaskRepository;
 import com.github.sc.scheduler.core.repo.TimetableRepository;
@@ -22,15 +21,15 @@ public class TaskServiceImpl implements TaskService {
     private TransactionSupport transactionSupport;
 
     @Override
-    public Task createTask(Task task,
-                           Optional<TaskArgs> args,
-                           SchedulingParams params) {
+    public SchedulingParams createTask(SchedulingParams params,
+                                       Optional<TaskArgs> args) {
         return transactionSupport.doInTransaction(() -> {
-            Task created = taskRepository.create(task);
+            SchedulingParams created = timetableRepository.save(params);
+            taskRepository.save(TaskImpl.newTask(created.getTaskId()));
             if (args.isPresent()) {
-                taskArgsRepository.save(created.getId(), args.get());
+                taskArgsRepository.save(created.getTaskId(), args.get());
             }
-            timetableRepository.save(SchedulingParamsImpl.builder(created.getId(), params).build());
+
             return created;
         });
     }
@@ -38,9 +37,9 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void removeTask(String taskId) {
         transactionSupport.doInTransaction(() -> {
+            timetableRepository.removeTask(taskId);
             taskRepository.remove(taskId);
             taskArgsRepository.remove(taskId);
-            timetableRepository.removeTask(taskId);
         });
     }
 

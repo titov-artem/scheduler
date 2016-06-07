@@ -19,21 +19,25 @@ public class RunImpl implements Run {
     private final Instant pingTime;
     private final Instant endTime;
     private final Status status;
-    private final int version;
+    private boolean restartOnFail;
+    private boolean restartOnReboot;
     private final String message;
+    private final int version;
 
-    public RunImpl(long runId,
-                   String taskId,
-                   EngineRequirements engineRequirements,
-                   Instant queuedTime,
-                   String host,
-                   Instant acquiredTime,
-                   Instant startTime,
-                   Instant pingTime,
-                   Instant endTime,
-                   Status status,
-                   String message,
-                   int version) {
+    private RunImpl(long runId,
+                    String taskId,
+                    EngineRequirements engineRequirements,
+                    Instant queuedTime,
+                    String host,
+                    Instant acquiredTime,
+                    Instant startTime,
+                    Instant pingTime,
+                    Instant endTime,
+                    Status status,
+                    boolean restartOnFail,
+                    boolean restartOnReboot,
+                    String message,
+                    int version) {
         this.runId = runId;
         this.taskId = taskId;
         this.engineRequirements = engineRequirements;
@@ -44,6 +48,8 @@ public class RunImpl implements Run {
         this.pingTime = pingTime;
         this.endTime = endTime;
         this.status = status;
+        this.restartOnReboot = restartOnReboot;
+        this.restartOnFail = restartOnFail;
         this.message = message;
         this.version = version;
     }
@@ -52,16 +58,28 @@ public class RunImpl implements Run {
         return new Builder(run);
     }
 
-    public static Builder newRun(Task task) {
+    public static Builder newRun(SchedulingParams task) {
         return new Builder(task);
     }
 
     public static Builder builder(long runId,
                                   String taskId,
                                   EngineRequirements engineRequirements,
+                                  boolean restartOnFail,
+                                  boolean restartOnReboot,
                                   Status status,
                                   Instant queuedTime) {
-        return new Builder(runId, taskId, engineRequirements, status, queuedTime);
+        return new Builder(runId, taskId, engineRequirements, restartOnFail, restartOnReboot, status, queuedTime);
+    }
+
+    // todo remove me while implementing restartOnFail, restartOnReboot
+    @Deprecated
+    public static Builder builder(long runId,
+                                  String taskId,
+                                  EngineRequirements engineRequirements,
+                                  Status status,
+                                  Instant queuedTime) {
+        return new Builder(runId, taskId, engineRequirements, false, false, status, queuedTime);
     }
 
     @Override
@@ -85,6 +103,16 @@ public class RunImpl implements Run {
     @Override
     public Status getStatus() {
         return status;
+    }
+
+    @Override
+    public boolean isRestartOnFail() {
+        return restartOnFail;
+    }
+
+    @Override
+    public boolean isRestartOnReboot() {
+        return restartOnReboot;
     }
 
     @Nonnull
@@ -144,12 +172,15 @@ public class RunImpl implements Run {
                 Objects.equals(startTime, run.startTime) &&
                 Objects.equals(endTime, run.endTime) &&
                 Objects.equals(status, run.status) &&
+                Objects.equals(restartOnFail, run.restartOnFail) &&
+                Objects.equals(restartOnReboot, run.restartOnReboot) &&
                 Objects.equals(message, run.message);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(runId, taskId, engineRequirements, host, queuedTime, acquiredTime, startTime, endTime, status, version, message);
+        return Objects.hash(runId, taskId, engineRequirements, host, queuedTime, acquiredTime, startTime, endTime,
+                status, restartOnFail, restartOnReboot, message, version);
     }
 
     @Override
@@ -164,16 +195,20 @@ public class RunImpl implements Run {
                 ", startTime=" + startTime +
                 ", endTime=" + endTime +
                 ", status=" + status +
-                ", version=" + version +
+                ", restartOnFail=" + restartOnFail +
+                ", restartOnReboot=" + restartOnReboot +
+                ", status=" + status +
                 ", message='" + message + '\'' +
+                ", version=" + version +
                 '}';
     }
 
     public static final class Builder {
         private Run run;
 
-        private Builder(Task task) {
-            run = new RunImpl(FAKE_RUN_ID, task.getId(), task.getEngineRequirements(), null, null, null, null, null, null, Status.PENDING, null, 0);
+        private Builder(SchedulingParams task) {
+            run = new RunImpl(FAKE_RUN_ID, task.getTaskId(), task.getEngineRequirements(), null, null, null, null, null, null,
+                    Status.PENDING, task.isRestartOnReboot(), task.isRestartOnFail(), null, 0);
         }
 
         private Builder(Run run) {
@@ -183,21 +218,25 @@ public class RunImpl implements Run {
         private Builder(long runId,
                         String taskId,
                         EngineRequirements engineRequirements,
+                        boolean restartOnFail,
+                        boolean restartOnReboot,
                         Status status,
                         Instant queuedTime) {
-            run = new RunImpl(runId, taskId, engineRequirements, queuedTime, null, null, null, null, null, status, null, 0);
+            run = new RunImpl(runId, taskId, engineRequirements, queuedTime, null, null, null, null, null, status, restartOnFail, restartOnReboot, null, 0);
         }
 
         public Builder withRunId(long runId) {
             run = new RunImpl(runId, run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
-                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(), run.getMessage(),
+                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(),
+                    run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
                     run.getVersion());
             return this;
         }
 
         public Builder withQueuedTime(Instant time) {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), time,
-                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(), run.getMessage(),
+                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(),
+                    run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
                     run.getVersion());
             return this;
 
@@ -206,28 +245,32 @@ public class RunImpl implements Run {
 
         public Builder withHost(String host) {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
-                    host, run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(), run.getMessage(),
+                    host, run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(),
+                    run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
                     run.getVersion());
             return this;
         }
 
         public Builder withAcquiredTime(Instant time) {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
-                    run.getHost(), time, run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(), run.getMessage(),
+                    run.getHost(), time, run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(),
+                    run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
                     run.getVersion());
             return this;
         }
 
         public Builder withStartTime(Instant time) {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
-                    run.getHost(), run.getAcquiredTime(), time, run.getPingTime(), run.getEndTime(), run.getStatus(), run.getMessage(),
+                    run.getHost(), run.getAcquiredTime(), time, run.getPingTime(), run.getEndTime(), run.getStatus(),
+                    run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
                     run.getVersion());
             return this;
         }
 
         public Builder withPingTime(Instant time) {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
-                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), time, run.getEndTime(), run.getStatus(), run.getMessage(),
+                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), time, run.getEndTime(), run.getStatus(),
+                    run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
                     run.getVersion());
             return this;
 
@@ -235,28 +278,32 @@ public class RunImpl implements Run {
 
         public Builder withEndTime(Instant time) {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
-                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), time, run.getStatus(), run.getMessage(),
+                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), time, run.getStatus(),
+                    run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
                     run.getVersion());
             return this;
         }
 
         public Builder withStatus(Status status) {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
-                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), status, run.getMessage(),
+                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), status,
+                    run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
                     run.getVersion());
             return this;
         }
 
         public Builder withMessage(String message) {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
-                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(), message,
+                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(),
+                    run.isRestartOnFail(), run.isRestartOnReboot(), message,
                     run.getVersion());
             return this;
         }
 
         public Builder withVersion(int version) {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
-                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(), run.getMessage(),
+                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(),
+                    run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
                     version);
             return this;
         }

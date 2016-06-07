@@ -39,14 +39,19 @@ public class JdbcOneInstanceIntegrationTest {
     @Test
     public void testRun() throws Exception {
         for (int i = 0; i < 100; i++) {
-            Task task = taskRepository.create(TaskImpl.newTask(
-                    Integer.toString(i),
-                    new EngineRequirementsImpl(i % 100, SimpleExecutor.class.getName(), "main")
-            ));
-            taskArgsRepository.save(task.getId(), TaskArgsImpl.builder(task.getId())
+            SchedulingParams params = timetableRepository.save(
+                    SchedulingParamsImpl.newTask(
+                            Integer.toString(i),
+                            new EngineRequirementsImpl(i % 100, SimpleExecutor.class.getName(), "main"),
+                            SchedulingType.ONCE,
+                            null
+                    )
+                            .build()
+            );
+            taskRepository.save(TaskImpl.newTask(params.getTaskId()));
+            taskArgsRepository.save(params.getTaskId(), TaskArgsImpl.builder(params.getTaskId())
                     .put("name", Integer.toString(i))
                     .build());
-            timetableRepository.save(SchedulingParamsImpl.builder(task.getId(), SchedulingType.ONCE, null).build());
         }
 
         while (historyRunsRepository.getAll().size() != 100) {

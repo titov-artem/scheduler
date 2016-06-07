@@ -3,7 +3,6 @@ package com.github.sc.scheduler.http.dto;
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.github.sc.scheduler.core.model.Run;
 import com.github.sc.scheduler.core.model.SchedulingParams;
-import com.github.sc.scheduler.core.model.Task;
 import com.github.sc.scheduler.core.model.TaskArgs;
 
 import javax.annotation.Nullable;
@@ -17,11 +16,10 @@ public class TaskView extends TaskForm {
 
     private final List<RunView> activeRun;
 
-    public TaskView(Task task,
+    public TaskView(SchedulingParams schedulingParams,
                     @Nullable TaskArgs taskArgs,
-                    SchedulingParams schedulingParams,
                     List<Run> activeRun) {
-        super(task, taskArgs, schedulingParams);
+        super(schedulingParams, taskArgs);
         this.activeRun = activeRun.stream().map(RunView::new).collect(toList());
     }
 

@@ -5,9 +5,9 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.sc.scheduler.core.model.SchedulingParams;
-import com.github.sc.scheduler.core.model.Task;
+import com.github.sc.scheduler.core.model.SchedulingParamsImpl;
+import com.github.sc.scheduler.core.model.SchedulingType;
 import com.github.sc.scheduler.core.model.TaskArgs;
-import com.github.sc.scheduler.core.model.TaskImpl;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
@@ -17,39 +17,39 @@ import java.util.Optional;
 public class TaskForm {
 
     private final String id;
-
     @Nullable
     private final String name;
-
+    private final EngineRequirementsDto engineRequirements;
+    private final SchedulingType type;
+    @Nullable
+    private final String param;
     @Nullable
     private final TaskArgsDto args;
-
-    private final EngineRequirementsDto engineRequirements;
-
-    private final SchedulingParamsDto schedulingParams;
 
     @JsonCreator
     public TaskForm(@JsonProperty("id") String id,
                     @JsonProperty("name") @Nullable String name,
-                    @JsonProperty("args") @Nullable TaskArgsDto args,
                     @JsonProperty("engineRequirements") EngineRequirementsDto engineRequirements,
-                    @JsonProperty("schedulingParams") SchedulingParamsDto schedulingParams) {
+                    @JsonProperty("type") SchedulingType type,
+                    @JsonProperty("param") @Nullable String param,
+                    @JsonProperty("args") @Nullable TaskArgsDto args) {
         this.id = id;
         this.name = name;
+        this.type = type;
+        this.param = param;
         this.args = args;
         this.engineRequirements = engineRequirements;
-        this.schedulingParams = schedulingParams;
     }
 
-    public TaskForm(Task task,
-                    @Nullable TaskArgs taskArgs,
-                    SchedulingParams schedulingParams) {
+    public TaskForm(SchedulingParams params,
+                    @Nullable TaskArgs taskArgs) {
         this(
-                task.getId(),
-                task.getName().isPresent() ? task.getName().get() : null,
-                taskArgs != null ? new TaskArgsDto(taskArgs) : null,
-                new EngineRequirementsDto(task.getEngineRequirements()),
-                new SchedulingParamsDto(schedulingParams)
+                params.getTaskId(),
+                params.getName().orElse(null),
+                new EngineRequirementsDto(params.getEngineRequirements()),
+                params.getType(),
+                params.getParam(),
+                taskArgs != null ? new TaskArgsDto(taskArgs) : null
         );
     }
 
@@ -64,6 +64,17 @@ public class TaskForm {
         return name;
     }
 
+    @JsonGetter
+    public SchedulingType getType() {
+        return type;
+    }
+
+    @Nullable
+    @JsonGetter
+    public String getParam() {
+        return param;
+    }
+
     @Nullable
     @JsonGetter("args")
     public TaskArgsDto getArgsDto() {
@@ -75,16 +86,6 @@ public class TaskForm {
         return engineRequirements;
     }
 
-    @JsonGetter("schedulingParams")
-    public SchedulingParamsDto getSchedulingParamsDto() {
-        return schedulingParams;
-    }
-
-    @JsonIgnore
-    public Task getTask() {
-        return new TaskImpl(id, Optional.ofNullable(name), engineRequirements.toEngineRequirements());
-    }
-
     @JsonIgnore
     public Optional<TaskArgs> getArgs() {
         return Optional.ofNullable(args.toTaskArgs());
@@ -92,6 +93,6 @@ public class TaskForm {
 
     @JsonIgnore
     public SchedulingParams getSchedulingParams() {
-        return schedulingParams.toSchedulingParams();
+        return new SchedulingParamsImpl.Builder(id, name, engineRequirements.toEngineRequirements(), type, param, 0, false, false).build();
     }
 }

@@ -1,10 +1,11 @@
 package com.github.sc.scheduler.jdbc.repo;
 
+import com.github.sc.scheduler.core.model.EngineRequirementsImpl;
 import com.github.sc.scheduler.core.model.SchedulingParams;
 import com.github.sc.scheduler.core.model.SchedulingParamsImpl;
 import com.github.sc.scheduler.core.model.SchedulingType;
 import com.github.sc.scheduler.core.repo.TimetableRepository;
-import com.github.sc.scheduler.jdbc.utils.SqlDateUtils;
+import com.github.sc.scheduler.core.utils.IdGenerator;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.springframework.beans.factory.annotation.Required;
@@ -16,7 +17,6 @@ import org.springframework.jdbc.core.RowMapper;
 import javax.annotation.Nullable;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -25,16 +25,19 @@ import java.util.Optional;
 public abstract class AbstractJdbcTimetableRepository implements TimetableRepository {
 
     private static final RowMapper<SchedulingParams> ROW_MAPPER = (rs, i) ->
-            SchedulingParamsImpl.builder(
+            new SchedulingParamsImpl.Builder(
                     rs.getString(SQLSchema.TASK_ID.getName()),
+                    rs.getString(SQLSchema.NAME.getName()),
+                    new EngineRequirementsImpl(
+                            rs.getInt(SQLSchema.WEIGHT.getName()),
+                            rs.getString(SQLSchema.EXECUTOR.getName()),
+                            rs.getString(SQLSchema.SERVICE.getName())
+                    ),
                     SchedulingType.valueOf(rs.getString(SQLSchema.TYPE.getName())),
-                    rs.getString(SQLSchema.PARAM.getName())
-            )
-                    .withLastRunTime(SqlDateUtils.toInstant(rs.getTimestamp(SQLSchema.LAST_RUN_TIME.getName())))
-                    .withStartingHost(rs.getString(SQLSchema.STARTING_HOST.getName()))
-                    .withStartingTime(SqlDateUtils.toInstant(rs.getTimestamp(SQLSchema.STARTING_TIME.getName())))
-                    .withVersion(rs.getInt(SQLSchema.VERSION.getName()))
-                    .build();
+                    rs.getString(SQLSchema.PARAM.getName()),
+                    0, false, false
+            ).build();
+
 
     private JdbcOperations jdbcOperations;
 
@@ -50,31 +53,18 @@ public abstract class AbstractJdbcTimetableRepository implements TimetableReposi
     }
 
     @Override
-    public void save(SchedulingParams params) {
+    public SchedulingParams save(SchedulingParams params) {
+        String taskId = IdGenerator.nextId();
         Query query = DSL().insertInto(SQLSchema.TIMETABLE_TABLE)
-                .set(SQLSchema.TASK_ID, params.getTaskId())
+                .set(SQLSchema.TASK_ID, taskId)
+                .set(SQLSchema.NAME, params.getName().orElse(null))
+                .set(SQLSchema.WEIGHT, params.getEngineRequirements().getWeight())
+                .set(SQLSchema.EXECUTOR, params.getEngineRequirements().getExecutor())
+                .set(SQLSchema.SERVICE, params.getEngineRequirements().getService())
                 .set(SQLSchema.TYPE, params.getType().name())
-                .set(SQLSchema.PARAM, params.getParam())
-                .set(SQLSchema.LAST_RUN_TIME, SqlDateUtils.toTimestamp(params.getLastRunTime()))
-                .set(SQLSchema.STARTING_HOST, params.getStartingHost())
-                .set(SQLSchema.STARTING_TIME, SqlDateUtils.toTimestamp(params.getStartingTime()))
-                .set(SQLSchema.VERSION, params.getVersion());
+                .set(SQLSchema.PARAM, params.getParam());
         jdbcOperations.update(query.getSQL(), query.getBindValues().toArray());
-    }
-
-    @Nullable
-    @Override
-    public SchedulingParams tryUpdate(SchedulingParams task) {
-        Query query = DSL().update(SQLSchema.TIMETABLE_TABLE)
-                .set(SQLSchema.TYPE, task.getType().name())
-                .set(SQLSchema.PARAM, task.getParam())
-                .set(SQLSchema.LAST_RUN_TIME, SqlDateUtils.toTimestamp(task.getLastRunTime()))
-                .set(SQLSchema.STARTING_HOST, task.getStartingHost())
-                .set(SQLSchema.STARTING_TIME, SqlDateUtils.toTimestamp(task.getStartingTime()))
-                .set(SQLSchema.VERSION, task.getVersion() + 1)
-                .where(SQLSchema.TASK_ID.eq(task.getTaskId())).and(SQLSchema.VERSION.eq(task.getVersion()));
-        jdbcOperations.update(query.getSQL(), query.getBindValues().toArray());
-        return get(task.getTaskId());
+        return SchedulingParamsImpl.builder(params).withTaskId(taskId).build();
     }
 
     @Nullable
@@ -85,13 +75,6 @@ public abstract class AbstractJdbcTimetableRepository implements TimetableReposi
         } catch (IncorrectResultSizeDataAccessException ignore) {
             return null;
         }
-    }
-
-    @Override
-    public void tryUpdateLastRunTime(String taskId, Instant lastRunTime) {
-        Query query = DSL().update(SQLSchema.TIMETABLE_TABLE).set(SQLSchema.LAST_RUN_TIME, SqlDateUtils.toTimestamp(lastRunTime))
-                .where(SQLSchema.TASK_ID.eq(taskId)).and(SQLSchema.LAST_RUN_TIME.lessThan(SqlDateUtils.toTimestamp(lastRunTime)));
-        jdbcOperations.update(query.getSQL(), query.getBindValues().toArray());
     }
 
     @Override

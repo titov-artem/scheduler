@@ -1,6 +1,8 @@
 package com.github.sc.scheduler.jdbc.repo;
 
+import com.github.sc.scheduler.core.model.EngineRequirementsImpl;
 import com.github.sc.scheduler.core.model.SchedulingParams;
+import com.github.sc.scheduler.core.model.SchedulingParamsImpl;
 import com.github.sc.scheduler.core.model.SchedulingType;
 import com.github.sc.scheduler.core.repo.TimetableRepository;
 import org.junit.Test;
@@ -9,14 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.github.sc.scheduler.core.model.SchedulingParamsImpl.builder;
-import static java.time.temporal.ChronoUnit.SECONDS;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 
@@ -29,99 +27,28 @@ public abstract class AbstractJdbcTimetableRepositoryTest {
 
     @Test
     public void testGetAll() throws Exception {
-        SchedulingParams run = builder("task1", SchedulingType.ONCE, null)
-                .withLastRunTime(Instant.now().truncatedTo(SECONDS))
-                .withStartingHost("host")
-                .withStartingTime(Instant.now().truncatedTo(SECONDS))
-                .withVersion(2)
+        SchedulingParams run = SchedulingParamsImpl.newTask("name", new EngineRequirementsImpl(1, "executor", "service"), SchedulingType.ONCE, null)
                 .build();
-        timetableRepository.save(run);
+        SchedulingParams created = timetableRepository.save(run);
 
-        Optional<SchedulingParams> task = timetableRepository.getTask("task1");
+        Optional<SchedulingParams> task = timetableRepository.getTask(created.getTaskId());
         assertThat(task.isPresent(), is(true));
-        assertThat(task.get(), is(run));
+        assertThat(task.get(), is(created));
 
         List<SchedulingParams> tasks = timetableRepository.getAll();
         assertThat(tasks.size(), is(1));
-        assertThat(tasks.get(0), is(run));
-    }
-
-
-    @Test
-    public void testTryUpdateWithSameVersion() throws Exception {
-        SchedulingParams run = builder("task1", SchedulingType.ONCE, null)
-                .withLastRunTime(Instant.now().truncatedTo(SECONDS))
-                .withStartingHost("host")
-                .withStartingTime(Instant.now().truncatedTo(SECONDS))
-                .withVersion(2)
-                .build();
-        timetableRepository.save(run);
-        SchedulingParams patched = builder(run)
-                .withStartingHost(null)
-                .build();
-        SchedulingParams updated = timetableRepository.tryUpdate(patched);
-        assertThat(updated, is(builder(patched).withVersion(patched.getVersion() + 1).build()));
-    }
-
-    @Test
-    public void testTryUpdateWithWrongVersion() throws Exception {
-        SchedulingParams run = builder("task1", SchedulingType.ONCE, null)
-                .withLastRunTime(Instant.now().truncatedTo(SECONDS))
-                .withStartingHost("host")
-                .withStartingTime(Instant.now().truncatedTo(SECONDS))
-                .withVersion(2)
-                .build();
-        timetableRepository.save(run);
-        SchedulingParams patched = builder(run)
-                .withStartingHost(null)
-                .withVersion(1)
-                .build();
-        SchedulingParams updated = timetableRepository.tryUpdate(patched);
-        assertThat(updated, is(run));
-    }
-
-    @Test
-    public void testTryUpdateMissed() throws Exception {
-        SchedulingParams run = builder("task1", SchedulingType.ONCE, null)
-                .withLastRunTime(Instant.now().truncatedTo(SECONDS))
-                .withStartingHost("host")
-                .withStartingTime(Instant.now().truncatedTo(SECONDS))
-                .withVersion(2)
-                .build();
-        SchedulingParams updated = timetableRepository.tryUpdate(run);
-        assertThat(updated, nullValue());
-    }
-
-    @Test
-    public void testTryUpdateLastRunTime() throws Exception {
-        SchedulingParams run = builder("task1", SchedulingType.ONCE, null)
-                .withLastRunTime(Instant.now().truncatedTo(SECONDS))
-                .withStartingHost("host")
-                .withStartingTime(Instant.now().truncatedTo(SECONDS))
-                .withVersion(2)
-                .build();
-        timetableRepository.save(run);
-
-        Instant newLastRunTime = Instant.now().truncatedTo(SECONDS);
-        timetableRepository.tryUpdateLastRunTime("task1", newLastRunTime);
-
-        Optional<SchedulingParams> updated = timetableRepository.getTask("task1");
-        assertThat(updated.get(), is(builder(run).withLastRunTime(newLastRunTime).build()));
+        assertThat(tasks.get(0), is(created));
     }
 
     @Test
     public void testRemoveTask() throws Exception {
-        SchedulingParams run = builder("task1", SchedulingType.ONCE, null)
-                .withLastRunTime(Instant.now().truncatedTo(SECONDS))
-                .withStartingHost("host")
-                .withStartingTime(Instant.now().truncatedTo(SECONDS))
-                .withVersion(2)
+        SchedulingParams run = SchedulingParamsImpl.newTask("name", new EngineRequirementsImpl(1, "executor", "service"), SchedulingType.ONCE, null)
                 .build();
-        timetableRepository.save(run);
+        SchedulingParams created = timetableRepository.save(run);
 
 
         List<SchedulingParams> before = timetableRepository.getAll();
-        timetableRepository.removeTask("task1");
+        timetableRepository.removeTask(created.getTaskId());
         List<SchedulingParams> after = timetableRepository.getAll();
         assertThat(before.size(), is(1));
         assertThat(after.size(), is(0));
@@ -129,17 +56,13 @@ public abstract class AbstractJdbcTimetableRepositoryTest {
 
     @Test
     public void testRemoveTasks() throws Exception {
-        SchedulingParams run = builder("task1", SchedulingType.ONCE, null)
-                .withLastRunTime(Instant.now().truncatedTo(SECONDS))
-                .withStartingHost("host")
-                .withStartingTime(Instant.now().truncatedTo(SECONDS))
-                .withVersion(2)
+        SchedulingParams run = SchedulingParamsImpl.newTask("name", new EngineRequirementsImpl(1, "executor", "service"), SchedulingType.ONCE, null)
                 .build();
-        timetableRepository.save(run);
+        SchedulingParams created = timetableRepository.save(run);
 
 
         List<SchedulingParams> before = timetableRepository.getAll();
-        timetableRepository.removeTasks(Collections.singleton("task1"));
+        timetableRepository.removeTasks(Collections.singleton(created.getTaskId()));
         List<SchedulingParams> after = timetableRepository.getAll();
         assertThat(before.size(), is(1));
         assertThat(after.size(), is(0));

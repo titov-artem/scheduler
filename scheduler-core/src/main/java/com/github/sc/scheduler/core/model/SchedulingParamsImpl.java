@@ -1,52 +1,79 @@
 package com.github.sc.scheduler.core.model;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
-import java.time.Instant;
 import java.util.Objects;
+import java.util.Optional;
 
 @Immutable
 public class SchedulingParamsImpl implements SchedulingParams {
 
     private final String taskId;
+    private final Optional<String> name;
+    private final EngineRequirements engineRequirements;
     private final SchedulingType type;
     private final String param;
-    private final Instant lastRunTime;
-    private final String startingHost;
-    private final Instant startingTime;
-    private final int version;
+    private final int concurrencyLevel;
+    private final boolean restartOnFail;
+    private final boolean restartOnReboot;
 
     private SchedulingParamsImpl(String taskId,
+                                 Optional<String> name,
+                                 EngineRequirements engineRequirements,
                                  SchedulingType type,
                                  String param,
-                                 Instant lastRunTime,
-                                 String startingHost,
-                                 Instant startingTime,
-                                 int version) {
+                                 int concurrencyLevel,
+                                 boolean restartOnFail,
+                                 boolean restartOnReboot) {
         this.taskId = taskId;
+        this.name = name;
+        this.engineRequirements = engineRequirements;
         this.type = type;
         this.param = param;
-        this.lastRunTime = lastRunTime;
-        this.startingHost = startingHost;
-        this.startingTime = startingTime;
-        this.version = version;
+        this.concurrencyLevel = concurrencyLevel;
+        this.restartOnFail = restartOnFail;
+        this.restartOnReboot = restartOnReboot;
     }
 
-    public static Builder builder(SchedulingParams instance) {
-        return new Builder(instance);
+    public static Builder newTask(EngineRequirements engineRequirements, SchedulingType type, String param) {
+        return new Builder(engineRequirements, type, param);
     }
 
-    public static Builder builder(String taskId, SchedulingParams instance) {
-        return new Builder(taskId, instance);
+
+    public static Builder newTask(@Nullable String name, EngineRequirements engineRequirements, SchedulingType type, String param) {
+        return new Builder(name, engineRequirements, type, param);
     }
 
-    public static Builder builder(String taskId, SchedulingType type, String param) {
-        return new Builder(taskId, type, param);
+    public static Builder newTask(@Nullable String name,
+                                  EngineRequirements engineRequirements,
+                                  SchedulingType type,
+                                  String param,
+                                  int concurrencyLevel,
+                                  boolean restartOnFail,
+                                  boolean restartOnReboot) {
+        return new Builder(name, engineRequirements, type, param, concurrencyLevel, restartOnFail, restartOnReboot);
+    }
+
+    public static Builder builder(SchedulingParams params) {
+        return new Builder(params);
     }
 
     @Override
     public String getTaskId() {
         return taskId;
+    }
+
+    @Nonnull
+    @Override
+    public Optional<String> getName() {
+        return name;
+    }
+
+    @Nonnull
+    @Override
+    public EngineRequirements getEngineRequirements() {
+        return engineRequirements;
     }
 
     @Nonnull
@@ -61,23 +88,18 @@ public class SchedulingParamsImpl implements SchedulingParams {
     }
 
     @Override
-    public Instant getLastRunTime() {
-        return lastRunTime;
+    public int getConcurrencyLevel() {
+        return concurrencyLevel;
     }
 
     @Override
-    public String getStartingHost() {
-        return startingHost;
+    public boolean isRestartOnFail() {
+        return restartOnFail;
     }
 
     @Override
-    public Instant getStartingTime() {
-        return startingTime;
-    }
-
-    @Override
-    public int getVersion() {
-        return version;
+    public boolean isRestartOnReboot() {
+        return restartOnReboot;
     }
 
     @Override
@@ -85,80 +107,119 @@ public class SchedulingParamsImpl implements SchedulingParams {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SchedulingParamsImpl that = (SchedulingParamsImpl) o;
-        return Objects.equals(version, that.version) &&
+        return concurrencyLevel == that.concurrencyLevel &&
+                restartOnFail == that.restartOnFail &&
+                restartOnReboot == that.restartOnReboot &&
                 Objects.equals(taskId, that.taskId) &&
-                Objects.equals(type, that.type) &&
-                Objects.equals(param, that.param) &&
-                Objects.equals(lastRunTime, that.lastRunTime) &&
-                Objects.equals(startingHost, that.startingHost) &&
-                Objects.equals(startingTime, that.startingTime);
+                Objects.equals(name, that.name) &&
+                Objects.equals(engineRequirements, that.engineRequirements) &&
+                type == that.type &&
+                Objects.equals(param, that.param);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(taskId, type, param, lastRunTime, startingHost, startingTime, version);
+        return Objects.hash(taskId, name, engineRequirements, type, param, concurrencyLevel, restartOnFail, restartOnReboot);
     }
 
     @Override
     public String toString() {
         return "SchedulingParamsImpl{" +
                 "taskId='" + taskId + '\'' +
+                ", name=" + name +
+                ", engineRequirements=" + engineRequirements +
                 ", type=" + type +
                 ", param='" + param + '\'' +
-                ", lastRunTime=" + lastRunTime +
-                ", startingHost='" + startingHost + '\'' +
-                ", startingTime=" + startingTime +
-                ", version=" + version +
+                ", concurrencyLevel=" + concurrencyLevel +
+                ", restartOnFail=" + restartOnFail +
+                ", restartOnReboot=" + restartOnReboot +
                 '}';
     }
 
     public static final class Builder {
         private SchedulingParams instance;
 
-        private Builder(String taskId, SchedulingType type, String param) {
-            instance = new SchedulingParamsImpl(taskId, type, param, null, null, null, 1);
+        private Builder(EngineRequirements engineRequirements, SchedulingType type, String param) {
+            this(null, engineRequirements, type, param, 0, false, false);
         }
 
-        private Builder(String taskId, SchedulingParams instance) {
-            this.instance = new SchedulingParamsImpl(
-                    taskId,
-                    instance.getType(),
-                    instance.getParam(),
-                    instance.getLastRunTime(),
-                    instance.getStartingHost(),
-                    instance.getStartingTime(),
-                    instance.getVersion());
+
+        private Builder(@Nullable String name, EngineRequirements engineRequirements, SchedulingType type, String param) {
+            this(name, engineRequirements, type, param, 0, false, false);
+        }
+
+        private Builder(@Nullable String name,
+                        EngineRequirements engineRequirements,
+                        SchedulingType type,
+                        String param,
+                        int concurrencyLevel,
+                        boolean restartOnFail,
+                        boolean restartOnReboot) {
+            this(null, name, engineRequirements, type, param, concurrencyLevel, restartOnFail, restartOnReboot);
+        }
+
+        public Builder(String taskId,
+                       @Nullable String name,
+                       EngineRequirements engineRequirements,
+                       SchedulingType type,
+                       String param,
+                       int concurrencyLevel,
+                       boolean restartOnFail,
+                       boolean restartOnReboot) {
+            instance = new SchedulingParamsImpl(taskId, Optional.ofNullable(name), engineRequirements, type, param, concurrencyLevel, restartOnFail, restartOnReboot);
         }
 
         private Builder(SchedulingParams instance) {
             this.instance = instance;
         }
 
-        public Builder withLastRunTime(Instant time) {
-            instance = new SchedulingParamsImpl(instance.getTaskId(), instance.getType(), instance.getParam(),
-                    time, instance.getStartingHost(), instance.getStartingTime(),
-                    instance.getVersion());
+        public Builder withTaskId(String taskId) {
+            instance = new SchedulingParamsImpl(taskId, instance.getName(), instance.getEngineRequirements(),
+                    instance.getType(), instance.getParam(),
+                    instance.getConcurrencyLevel(), instance.isRestartOnFail(), instance.isRestartOnReboot());
             return this;
         }
 
-        public Builder withStartingHost(String host) {
-            instance = new SchedulingParamsImpl(instance.getTaskId(), instance.getType(), instance.getParam(),
-                    instance.getLastRunTime(), host, instance.getStartingTime(),
-                    instance.getVersion());
+        public Builder withName(@Nullable String name) {
+            instance = new SchedulingParamsImpl(instance.getTaskId(), Optional.ofNullable(name), instance.getEngineRequirements(),
+                    instance.getType(), instance.getParam(),
+                    instance.getConcurrencyLevel(), instance.isRestartOnFail(), instance.isRestartOnReboot());
             return this;
         }
 
-        public Builder withStartingTime(Instant time) {
-            instance = new SchedulingParamsImpl(instance.getTaskId(), instance.getType(), instance.getParam(),
-                    instance.getLastRunTime(), instance.getStartingHost(), time,
-                    instance.getVersion());
+        public Builder withEngineRequirements(EngineRequirements engineRequirements) {
+            instance = new SchedulingParamsImpl(instance.getTaskId(), instance.getName(), engineRequirements,
+                    instance.getType(), instance.getParam(),
+                    instance.getConcurrencyLevel(), instance.isRestartOnFail(), instance.isRestartOnReboot());
             return this;
         }
 
-        public Builder withVersion(int version) {
-            instance = new SchedulingParamsImpl(instance.getTaskId(), instance.getType(), instance.getParam(),
-                    instance.getLastRunTime(), instance.getStartingHost(), instance.getStartingTime(),
-                    version);
+        public Builder withSchedulingType(SchedulingType type, String param) {
+            instance = new SchedulingParamsImpl(instance.getTaskId(), instance.getName(), instance.getEngineRequirements(),
+                    type, param,
+                    instance.getConcurrencyLevel(), instance.isRestartOnFail(), instance.isRestartOnReboot());
+            return this;
+        }
+
+
+        public Builder withConcurrencyLevel(int concurrencyLevel) {
+            instance = new SchedulingParamsImpl(instance.getTaskId(), instance.getName(), instance.getEngineRequirements(),
+                    instance.getType(), instance.getParam(),
+                    concurrencyLevel, instance.isRestartOnFail(), instance.isRestartOnReboot());
+            return this;
+        }
+
+        public Builder withRestartOnFail(boolean restartOnFail) {
+            instance = new SchedulingParamsImpl(instance.getTaskId(), instance.getName(), instance.getEngineRequirements(),
+                    instance.getType(), instance.getParam(),
+                    instance.getConcurrencyLevel(), restartOnFail, instance.isRestartOnReboot());
+            return this;
+        }
+
+        public Builder withRestartOnReboot(boolean restartOnReboot) {
+            instance = new SchedulingParamsImpl(instance.getTaskId(), instance.getName(), instance.getEngineRequirements(),
+                    instance.getType(), instance.getParam(),
+                    instance.getConcurrencyLevel(), instance.isRestartOnFail(), restartOnReboot);
             return this;
         }
 

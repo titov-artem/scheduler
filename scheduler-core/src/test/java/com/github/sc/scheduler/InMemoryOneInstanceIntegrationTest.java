@@ -23,7 +23,7 @@ public class InMemoryOneInstanceIntegrationTest {
 
         InMemoryActiveRunsRepository activeRunsRepository = new InMemoryActiveRunsRepository();
         InMemoryHistoryRunsRepository historyRunsRepository = new InMemoryHistoryRunsRepository();
-        InMemoryTaskArgsRepository taskParamsRepository = new InMemoryTaskArgsRepository();
+        InMemoryTaskArgsRepository taskArgsRepository = new InMemoryTaskArgsRepository();
         InMemoryTaskRepository taskRepository = new InMemoryTaskRepository();
         InMemoryTimetableRepository timetableRepository = new InMemoryTimetableRepository();
 
@@ -41,7 +41,7 @@ public class InMemoryOneInstanceIntegrationTest {
 
         Engine engine = new Engine();
         engine.setActiveRunsRepository(activeRunsRepository);
-        engine.setTaskArgsRepository(taskParamsRepository);
+        engine.setTaskArgsRepository(taskArgsRepository);
         engine.setExecutorLookupService(executorLookupService);
         engine.setTaskPicker(taskPicker);
         engine.setClock(clock);
@@ -56,14 +56,15 @@ public class InMemoryOneInstanceIntegrationTest {
         engine.start();
 
         for (int i = 0; i < 1000; i++) {
-            Task task = taskRepository.create(TaskImpl.newTask(
-                    Integer.toString(i),
-                    new EngineRequirementsImpl(i % 100, SimpleExecutor.class.getName(), "main")
-            ));
-            taskParamsRepository.save(task.getId(), TaskArgsImpl.builder(task.getId())
+            SchedulingParams params = timetableRepository.save(SchedulingParamsImpl.newTask(
+                    new EngineRequirementsImpl(i % 100, SimpleExecutor.class.getName(), "main"),
+                    SchedulingType.ONCE,
+                    null
+            ).build());
+            taskRepository.save(TaskImpl.newTask(params.getTaskId()));
+            taskArgsRepository.save(params.getTaskId(), TaskArgsImpl.builder(params.getTaskId())
                     .put("name", Integer.toString(i))
                     .build());
-            timetableRepository.save(SchedulingParamsImpl.builder(task.getId(), SchedulingType.ONCE, null).build());
         }
 
         while (historyRunsRepository.getAll().size() != 1000) {

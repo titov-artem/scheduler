@@ -129,9 +129,9 @@ public class RunMaster implements Runnable {
     }
 
     private void restoreLastRunTime() {
-        List<SchedulingParams> tasks = timetableRepository.getAll();
+        List<Task> tasks = taskRepository.getAll();
         Multimap<String, Run> activeRuns = activeRunsRepository.getRuns(
-                tasks.stream().map(SchedulingParams::getTaskId).collect(toList())
+                tasks.stream().map(Task::getId).collect(toList())
         );
         Map<String, Run> lastActiveRuns = new HashMap<>();
         for (final Map.Entry<String, Run> entry : activeRuns.entries()) {
@@ -141,17 +141,17 @@ public class RunMaster implements Runnable {
                 lastActiveRuns.put(entry.getKey(), entry.getValue());
             }
         }
-        for (final SchedulingParams task : tasks) {
+        for (final Task task : tasks) {
             Instant lastActiveRunTime = getLastRunTime(task, lastActiveRuns);
             if (!Objects.equals(task.getLastRunTime(), lastActiveRunTime)) {
                 // should be rare, so not batch for simplicity
-                timetableRepository.tryUpdateLastRunTime(task.getTaskId(), lastActiveRunTime);
+                taskRepository.tryUpdateLastRunTime(task.getId(), lastActiveRunTime);
             }
         }
     }
 
-    private Instant getLastRunTime(SchedulingParams task, Map<String, Run> lastActiveRuns) {
-        Run run = lastActiveRuns.get(task.getTaskId());
+    private Instant getLastRunTime(Task task, Map<String, Run> lastActiveRuns) {
+        Run run = lastActiveRuns.get(task.getId());
         if (run == null) return task.getLastRunTime();
         if (task.getLastRunTime() == null) return run.getQueuedTime();
         return run.getQueuedTime().isBefore(task.getLastRunTime()) ? task.getLastRunTime() : run.getQueuedTime();
@@ -159,7 +159,7 @@ public class RunMaster implements Runnable {
 
     private void restoreStartingHost() {
         final Instant now = Instant.now(clock);
-        List<SchedulingParams> tasks = timetableRepository.getAll();
+        List<Task> tasks = taskRepository.getAll();
         tasks.stream()
                 .filter(t -> t.getStartingHost() != null)
                 .filter(t -> !isAfter(t.getStartingTime(), t.getLastRunTime()) ||
@@ -167,82 +167,69 @@ public class RunMaster implements Runnable {
                 .forEach(this::tryRelease);
     }
 
-    /**
-     * Return is a after b. If b is null, then return true
-     */
-    private boolean isAfter(@Nonnull Instant a, @Nullable Instant b) {
-        return b == null || a.isAfter(b);
-    }
-
     private void startTasks() {
         final Instant now = Instant.now(clock);
         // load time table
         log.info("Run master begin task starting at {}", now);
-        List<SchedulingParams> tasks = timetableRepository.getAll();
+        List<Task> tasks = taskRepository.getAll();
+        Map<String, SchedulingParams> paramsById = timetableRepository.getAll().stream().collect(toMap(SchedulingParams::getTaskId, i -> i));
         log.info("Found {} tasks.", tasks.size());
         // found tasks to start
-        Map<String, SchedulingParams> tasksToStart = tasks.stream()
+        Map<String, Task> tasksToStart = tasks.stream()
                 .filter(t -> t.getStartingHost() == null)
-                .filter(t -> t.getType().canStart(t.getParam(), now, t.getLastRunTime(), periodSeconds, clock.getZone()))
-                .collect(toMap(SchedulingParams::getTaskId, t -> t));
+                .filter(t -> {
+                    if (!paramsById.containsKey(t.getId())) log.error("Missing params for task {}", t.getId());
+                    return paramsById.containsKey(t.getId());
+                })
+                .filter(t -> {
+                    SchedulingParams params = paramsById.get(t.getId());
+                    return params.getType().canStart(params.getParam(), now, t.getLastRunTime(), periodSeconds, clock.getZone());
+                })
+                .collect(toMap(Task::getId, t -> t));
         log.debug("Tasks to start ({}): {}", tasksToStart.size(), tasksToStart);
         // create runs for them and put into queue
         Set<String> startedTasks = tasksToStart.values().stream()
-                .map(this::tryStart)
+                .map(t -> tryStart(t, paramsById.get(t.getId())))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(Run::getTaskId)
                 .collect(toSet());
         log.trace("Started {} tasks: {}", startedTasks.size(), startedTasks);
-        // remove ONCE tasks
-        // todo think about removing this task when archiving
-        List<String> startedRunOnceTasks = tasksToStart.entrySet().stream()
-                .filter(t -> t.getValue().getType() == SchedulingType.ONCE)
-                .filter(t -> startedTasks.contains(t.getKey()))
-                .map(Map.Entry::getKey)
-                .collect(toList());
-        log.trace("Started {} run ONCE tasks: {}", startedRunOnceTasks.size(), startedRunOnceTasks);
-        timetableRepository.removeTasks(startedRunOnceTasks);
         if (!engines.isEmpty()) {
             engineTouchingService.execute(() -> engines.forEach(Engine::touch));
         }
     }
 
-    private Optional<Run> tryStart(SchedulingParams param) {
-        SchedulingParams acquiredParams = tryAcquire(param);
-        if (acquiredParams == null) {
+    private Optional<Run> tryStart(Task task, SchedulingParams param) {
+        Task acquiredTask = tryAcquire(task);
+        if (acquiredTask == null) {
             log.warn("Failed to acquired task, because no such task found: " + param.getTaskId());
             return Optional.empty();
         }
-        if (!Objects.equals(acquiredParams.getStartingHost(), host)) {
-            log.debug("Other instance acquire task {}", acquiredParams.getTaskId());
+        if (!Objects.equals(acquiredTask.getStartingHost(), host)) {
+            log.debug("Other instance acquire task {}", acquiredTask.getId());
             return Optional.empty();
         }
-        log.debug("Task {} acquired on host {}", acquiredParams.getTaskId(), acquiredParams.getStartingHost());
-        Optional<Task> task = taskRepository.get(param.getTaskId());
-        if (!task.isPresent()) {
-            log.warn("Failed to get task for params {}", param);
-            return Optional.empty();
-        }
-        Run run = activeRunsRepository.create(RunImpl.newRun(task.get())
+        log.debug("Task {} acquired on host {}", acquiredTask.getId(), acquiredTask.getStartingHost());
+        Run run = activeRunsRepository.create(RunImpl.newRun(param)
                 .withQueuedTime(Instant.now(clock))
                 .build());
-        log.info("Task {} started. Run: {}", task.get().getId(), run);
-        tryRelease(SchedulingParamsImpl.builder(acquiredParams).withLastRunTime(Instant.now(clock)).build());
+        log.info("Task {} started. Run: {}", task.getId(), run);
+        tryRelease(TaskImpl.builder(acquiredTask).withLastRunTime(Instant.now(clock)).build());
         return Optional.of(run);
     }
 
-    private SchedulingParams tryRelease(SchedulingParams params) {
-        return timetableRepository.tryUpdate(SchedulingParamsImpl.builder(params)
-                .withStartingHost(null)
-                .withStartingTime(null)
+    private Task tryAcquire(Task task) {
+        return taskRepository.tryUpdate(TaskImpl.builder(task)
+                .withStartingHost(host)
+                .withStartingTime(Instant.now(clock))
                 .build());
     }
 
-    private SchedulingParams tryAcquire(SchedulingParams params) {
-        return timetableRepository.tryUpdate(SchedulingParamsImpl.builder(params)
-                .withStartingHost(host)
-                .withStartingTime(Instant.now(clock))
+    private Task tryRelease(Task task) {
+        return taskRepository.tryUpdate(TaskImpl.builder(task)
+                .withStartingHost(null)
+                .withStartingTime(null)
                 .build());
     }
 
@@ -256,6 +243,15 @@ public class RunMaster implements Runnable {
         log.trace("Ready to remove completed runs");
         activeRunsRepository.remove(completedRuns);
         log.info("Archived {} completed runs", completedRuns.size());
+    }
+
+    /* Utility methods */
+
+    /**
+     * Return is a after b. If b is null, then return true
+     */
+    private boolean isAfter(@Nonnull Instant a, @Nullable Instant b) {
+        return b == null || a.isAfter(b);
     }
 
     /* Setters */

@@ -2,15 +2,20 @@ package com.github.sc.scheduler.core.model;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.time.Instant;
+import java.util.Optional;
 
 /**
- * Contains information about run time. With this params RunMaster will determine
- * when it is necessary to put this task into execution queue
+ * Contains fields, that necessary for task scheduling and that don't change by run master while task scheduling
  */
 public interface SchedulingParams {
 
     String getTaskId();
+
+    @Nonnull
+    Optional<String> getName();
+
+    @Nonnull
+    EngineRequirements getEngineRequirements();
 
     @Nonnull
     SchedulingType getType();
@@ -25,20 +30,35 @@ public interface SchedulingParams {
     @Nullable
     String getParam();
 
-    @Nullable
-    Instant getLastRunTime();
+    // todo maybe put it in task, or put engine requirements here
 
     /**
-     * @return host, that acquire this task for creating its run and putting it into queue
+     * Number of task that can be executed concurrently. Run master will start this number of tasks on the first
+     * run and then will keep this level on each next run time. For example if on the next run time there will be some
+     * tasks, which haven't completed yet, then run master will start {@code cuncurrenclyLevel} minus that number of
+     * tasks
+     * <p>
+     * For disallowing concurrent execution set it to 0
+     *
+     * @return concurrency level
      */
-    @Nullable
-    String getStartingHost();
+    int getConcurrencyLevel();
 
     /**
-     * @return time, when starting host acquire this task
+     * Does scheduler have to restart task after fail automatically. The run will be restarted if and only if it will not
+     * violate concurrency level constraint
+     *
+     * @return true if scheduler have to restart run after fail automatically.
+     * @see #getConcurrencyLevel()
      */
-    @Nullable
-    Instant getStartingTime();
+    boolean isRestartOnFail();
 
-    int getVersion();
+    /**
+     * Does scheduler have to restart task after reboot of engine, that executes this task automatically. The run will
+     * be restarted if and only if it will not violate concurrency level constraint
+     *
+     * @return true if scheduler have to restart run after engine reboot.
+     * @see #getConcurrencyLevel()
+     */
+    boolean isRestartOnReboot();
 }

@@ -1,9 +1,9 @@
 CREATE TABLE sch_task (
-  task_id  VARCHAR(128) NOT NULL PRIMARY KEY,
-  name     VARCHAR(128) DEFAULT NULL,
-  service  VARCHAR(128) NOT NULL,
-  executor VARCHAR(512) NOT NULL,
-  weight   INTEGER      NOT NULL
+  task_id       VARCHAR(128) NOT NULL PRIMARY KEY,
+  last_run_time DATETIME              DEFAULT NULL,
+  starting_host VARCHAR(128)          DEFAULT NULL,
+  starting_time DATETIME              DEFAULT NULL,
+  version       INTEGER      NOT NULL DEFAULT 1
 )
   ENGINE = INNODB;
 
@@ -16,13 +16,13 @@ CREATE TABLE sch_task_args (
   ENGINE = INNODB;
 
 CREATE TABLE sch_timetable (
-  task_id       VARCHAR(128) NOT NULL PRIMARY KEY,
-  type          VARCHAR(32)  NOT NULL,
-  param         VARCHAR(128)          DEFAULT NULL,
-  last_run_time DATETIME              DEFAULT NULL,
-  starting_host VARCHAR(128)          DEFAULT NULL,
-  starting_time DATETIME              DEFAULT NULL,
-  version       INTEGER      NOT NULL DEFAULT 0
+  task_id  VARCHAR(128) NOT NULL PRIMARY KEY,
+  name     VARCHAR(128) DEFAULT NULL,
+  service  VARCHAR(128) NOT NULL,
+  executor VARCHAR(512) NOT NULL,
+  weight   INTEGER      NOT NULL,
+  type     VARCHAR(32)  NOT NULL,
+  param    VARCHAR(128) DEFAULT NULL
 )
   ENGINE = INNODB;
 
@@ -40,7 +40,7 @@ CREATE TABLE sch_run (
   ping_time     DATETIME                          DEFAULT NULL,
   end_time      DATETIME                          DEFAULT NULL,
   message       VARCHAR(512)                      DEFAULT NULL,
-  version       INTEGER      NOT NULL             DEFAULT 0,
+  version       INTEGER      NOT NULL             DEFAULT 1,
   INDEX (task_id)
 )
   ENGINE = INNODB;
@@ -59,7 +59,7 @@ CREATE TABLE sch_history_run (
   ping_time     DATETIME                          DEFAULT NULL,
   end_time      DATETIME                          DEFAULT NULL,
   message       VARCHAR(512)                      DEFAULT NULL,
-  version       INTEGER      NOT NULL             DEFAULT 0,
+  version       INTEGER      NOT NULL             DEFAULT 1,
   INDEX (task_id)
 )
   ENGINE = INNODB;

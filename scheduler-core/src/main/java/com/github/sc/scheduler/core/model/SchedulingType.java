@@ -37,7 +37,7 @@ public enum SchedulingType {
     ONCE {
         @Override
         public boolean canStart(String paramValue, Instant curTime, Instant lastRunTime, long tickPeriodSeconds, ZoneId zone) {
-            return true;
+            return lastRunTime == null;
         }
     },
     // todo maybe 1s will be hard to support...

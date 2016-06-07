@@ -32,12 +32,14 @@ public class SQLSchema {
     static final Field<String> EXECUTOR = field("executor", String.class);
     static final Field<Integer> WEIGHT = field("weight", Integer.class);
 
-    /* Task params */
+    /* Task args */
     static final Field<String> VALUE = field("value", String.class);
 
     /* Scheduling params */
     static final Field<String> TYPE = field("type", String.class);
     static final Field<String> PARAM = field("param", String.class);
+
+    /* Task */
     static final Field<LocalDateTime> LAST_RUN_TIME = field("last_run_time", LocalDateTime.class);
     static final Field<String> STARTING_HOST = field("starting_host", String.class);
     static final Field<LocalDateTime> STARTING_TIME = field("starting_time", LocalDateTime.class);

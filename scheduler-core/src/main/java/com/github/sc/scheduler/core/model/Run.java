@@ -24,6 +24,24 @@ public interface Run {
     Status getStatus();
 
     /**
+     * Does scheduler have to restart task after fail automatically. The run will be restarted if and only if it will not
+     * break concurrency level constraint
+     *
+     * @return true if scheduler have to restart run after fail automatically.
+     * @see SchedulingParams#getConcurrencyLevel()
+     */
+    boolean isRestartOnFail();
+
+    /**
+     * Does scheduler have to restart task after reboot of engine, that executes this task automatically. The run will
+     * be restarted if and only if it will not break concurrency level constraint
+     *
+     * @return true if scheduler have to restart run after engine reboot.
+     * @see SchedulingParams#getConcurrencyLevel()
+     */
+    boolean isRestartOnReboot();
+
+    /**
      * @return time when run was added to queue
      */
     @Nonnull

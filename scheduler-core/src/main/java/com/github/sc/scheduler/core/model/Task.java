@@ -1,17 +1,32 @@
 package com.github.sc.scheduler.core.model;
 
 import javax.annotation.Nonnull;
-import java.util.Optional;
+import javax.annotation.Nullable;
+import java.time.Instant;
 
+/**
+ * Task in scheduler. Contains internal scheduler field for correct task execution and locking
+ */
 public interface Task {
 
     @Nonnull
     String getId();
 
-    @Nonnull
-    Optional<String> getName();
+    @Nullable
+    Instant getLastRunTime();
 
-    @Nonnull
-    EngineRequirements getEngineRequirements();
+    /**
+     * @return host, that acquire this task for creating its run and putting it into queue
+     */
+    @Nullable
+    String getStartingHost();
+
+    /**
+     * @return time, when starting host acquire this task
+     */
+    @Nullable
+    Instant getStartingTime();
+
+    int getVersion();
 
 }

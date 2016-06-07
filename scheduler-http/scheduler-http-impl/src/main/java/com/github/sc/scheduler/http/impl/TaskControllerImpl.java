@@ -50,9 +50,8 @@ public class TaskControllerImpl implements TaskController {
 
         List<TaskView> out = new ArrayList<>();
         tasks.forEach((id, task) -> out.add(new TaskView(
-                task,
-                args.get(id),
                 params.get(id),
+                args.get(id),
                 activeRuns.get(id)
         )));
         return out;
@@ -60,26 +59,23 @@ public class TaskControllerImpl implements TaskController {
 
     @Override
     public TaskView get(String taskId) {
-        Optional<Task> maybeTask = taskRepository.get(taskId);
-        if (!maybeTask.isPresent()) {
+        Optional<SchedulingParams> maybeParams = timetableRepository.getTask(taskId);
+        if (!maybeParams.isPresent()) {
             throw new NotFoundException();
         }
-        Task task = maybeTask.get();
-        Optional<TaskArgs> args = taskArgsRepository.get(task.getId());
-        Optional<SchedulingParams> params = timetableRepository.getTask(task.getId());
-        return new TaskView(task, args.orElse(null), params.get(), activeRunsRepository.get(taskId));
+        SchedulingParams params = maybeParams.get();
+        Optional<TaskArgs> args = taskArgsRepository.get(params.getTaskId());
+        return new TaskView(params, args.orElse(null), activeRunsRepository.get(taskId));
     }
 
     @Override
     public TaskView create(TaskForm taskForm) {
-        Task task = taskService.createTask(
-                taskForm.getTask(),
-                taskForm.getArgs(),
-                taskForm.getSchedulingParams()
+        SchedulingParams task = taskService.createTask(
+                taskForm.getSchedulingParams(),
+                taskForm.getArgs()
         );
-        Optional<TaskArgs> args = taskArgsRepository.get(task.getId());
-        Optional<SchedulingParams> params = timetableRepository.getTask(task.getId());
-        return new TaskView(task, args.orElse(null), params.get(), emptyList());
+        Optional<TaskArgs> args = taskArgsRepository.get(task.getTaskId());
+        return new TaskView(task, args.orElse(null), emptyList());
     }
 
     @Override
