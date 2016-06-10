@@ -6,6 +6,7 @@ import com.github.sc.scheduler.core.model.SchedulingParamsImpl;
 import com.github.sc.scheduler.core.model.SchedulingType;
 import com.github.sc.scheduler.core.repo.TimetableRepository;
 import com.github.sc.scheduler.core.utils.IdGenerator;
+import com.google.common.collect.Iterables;
 import org.jooq.DSLContext;
 import org.jooq.Query;
 import org.springframework.beans.factory.annotation.Required;
@@ -17,10 +18,7 @@ import org.springframework.jdbc.core.RowMapper;
 import javax.annotation.Nullable;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public abstract class AbstractJdbcTimetableRepository implements TimetableRepository {
 
@@ -50,8 +48,18 @@ public abstract class AbstractJdbcTimetableRepository implements TimetableReposi
     }
 
     @Override
-    public Optional<SchedulingParams> getTask(String taskId) {
-        return Optional.ofNullable(get(taskId));
+    public List<SchedulingParams> getAll(Collection<String> taskIds) {
+        List<SchedulingParams> out = new ArrayList<>();
+        for (List<String> chunk : Iterables.partition(new HashSet<>(taskIds), getMaxInSize())) {
+            Query query = DSL().select().from(SQLSchema.TIMETABLE_TABLE).where(SQLSchema.TASK_ID.in(chunk));
+            out.addAll(jdbcOperations.query(query.getSQL(), query.getBindValues().toArray(), ROW_MAPPER));
+        }
+        return out;
+    }
+
+    @Override
+    public Optional<SchedulingParams> get(String taskId) {
+        return Optional.ofNullable(getInternal(taskId));
     }
 
     @Override
@@ -73,7 +81,7 @@ public abstract class AbstractJdbcTimetableRepository implements TimetableReposi
     }
 
     @Nullable
-    private SchedulingParams get(String taskId) {
+    private SchedulingParams getInternal(String taskId) {
         try {
             Query query = DSL().select().from(SQLSchema.TIMETABLE_TABLE).where(SQLSchema.TASK_ID.eq(taskId));
             return jdbcOperations.queryForObject(query.getSQL(), ROW_MAPPER, query.getBindValues().toArray());
@@ -106,6 +114,8 @@ public abstract class AbstractJdbcTimetableRepository implements TimetableReposi
     }
 
     protected abstract DSLContext DSL();
+
+    protected abstract int getMaxInSize();
 
     /* Setters */
     @Required

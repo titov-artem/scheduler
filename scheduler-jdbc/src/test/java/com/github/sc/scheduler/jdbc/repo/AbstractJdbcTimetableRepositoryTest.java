@@ -31,7 +31,7 @@ public abstract class AbstractJdbcTimetableRepositoryTest {
                 .build();
         SchedulingParams created = timetableRepository.save(run);
 
-        Optional<SchedulingParams> task = timetableRepository.getTask(created.getTaskId());
+        Optional<SchedulingParams> task = timetableRepository.get(created.getTaskId());
         assertThat(task.isPresent(), is(true));
         assertThat(task.get(), is(created));
 

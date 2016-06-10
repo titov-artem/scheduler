@@ -26,6 +26,7 @@
         </property>
         <property name="taskArgsRepository" ref="taskArgsRepository"/>
         <property name="activeRunsRepository" ref="activeRunsRepository"/>
+        <property name="timetableRepository" ref="timetableRepository"/>
         <property name="hostProvider">
             <bean class="com.github.sc.scheduler.core.utils.FromPropertySchedulerHostProvider">
                 <property name="host" value="localhost"/>

@@ -10,4 +10,9 @@ public class MySqlJdbcTimetableRepository extends AbstractJdbcTimetableRepositor
     protected DSLContext DSL() {
         return DSL.using(SQLDialect.MYSQL);
     }
+
+    @Override
+    protected int getMaxInSize() {
+        return 1000;
+    }
 }

@@ -10,12 +10,13 @@ public interface TimetableRepository {
 
     List<SchedulingParams> getAll();
 
-    Optional<SchedulingParams> getTask(String taskId);
+    List<SchedulingParams> getAll(Collection<String> taskIds);
+
+    Optional<SchedulingParams> get(String taskId);
 
     SchedulingParams save(SchedulingParams params);
 
     void removeTask(String taskId);
 
     void removeTasks(Collection<String> taskIds);
-
 }

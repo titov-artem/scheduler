@@ -29,4 +29,9 @@ public class InMemoryActiveRunsRepository extends InMemoryRunsRepository impleme
             container.lock.unlock();
         }
     }
+
+    @Override
+    public List<Run> create(Run run, int count, int concurrencyLevel) {
+        throw new UnsupportedOperationException();
+    }
 }

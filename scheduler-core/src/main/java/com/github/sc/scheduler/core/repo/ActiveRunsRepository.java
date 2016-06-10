@@ -14,4 +14,6 @@ public interface ActiveRunsRepository extends RunsRepository {
     List<Run> getAll();
 
     void ping(long runId, Instant pingTime);
+
+    List<Run> create(Run run, int count, int concurrencyLevel);
 }

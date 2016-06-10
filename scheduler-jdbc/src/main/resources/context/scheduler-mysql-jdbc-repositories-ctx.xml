@@ -6,6 +6,7 @@
     <bean id="activeRunsRepository"
           class="com.github.sc.scheduler.jdbc.repo.mysql.MySqlJdbcActiveRunsRepository">
         <property name="jdbcOperations" ref="jdbcOperations"/>
+        <property name="transactionSupport" ref="transactionSupport"/>
     </bean>
 
     <bean id="historyRunsRepository"

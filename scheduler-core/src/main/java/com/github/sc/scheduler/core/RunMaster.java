@@ -191,7 +191,7 @@ public class RunMaster implements Runnable {
         Set<String> startedTasks = tasksToStart.values().stream()
                 .map(t -> tryStart(t, paramsById.get(t.getId())))
                 .filter(Optional::isPresent)
-                .map(Optional::get)
+                .flatMap(o -> o.get().stream())
                 .map(Run::getTaskId)
                 .collect(toSet());
         log.trace("Started {} tasks: {}", startedTasks.size(), startedTasks);
@@ -200,7 +200,7 @@ public class RunMaster implements Runnable {
         }
     }
 
-    private Optional<Run> tryStart(Task task, SchedulingParams param) {
+    private Optional<List<Run>> tryStart(Task task, SchedulingParams param) {
         Task acquiredTask = tryAcquire(task);
         if (acquiredTask == null) {
             log.warn("Failed to acquired task, because no such task found: " + param.getTaskId());
@@ -211,12 +211,13 @@ public class RunMaster implements Runnable {
             return Optional.empty();
         }
         log.debug("Task {} acquired on host {}", acquiredTask.getId(), acquiredTask.getStartingHost());
-        Run run = activeRunsRepository.create(RunImpl.newRun(param)
+        List<Run> runs = activeRunsRepository.create(RunImpl.newRun(param)
                 .withQueuedTime(Instant.now(clock))
-                .build());
-        log.info("Task {} started. Run: {}", task.getId(), run);
+                .build(), param.getConcurrencyLevel(), param.getConcurrencyLevel());
+        log.info("Task {} started. Created {} runs with ids: {}",
+                task.getId(), runs.size(), runs.stream().map(Run::getRunId).collect(toList()));
         tryRelease(TaskImpl.builder(acquiredTask).withLastRunTime(Instant.now(clock)).build());
-        return Optional.of(run);
+        return Optional.of(runs);
     }
 
     private Task tryAcquire(Task task) {

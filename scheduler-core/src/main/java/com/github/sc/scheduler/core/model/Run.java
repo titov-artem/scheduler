@@ -87,7 +87,7 @@ public interface Run {
     int getVersion();
 
     enum Status {
-        PENDING, RUNNING, COMPLETE, FAILED
+        PENDING, RUNNING, COMPLETE, HANGED, FAILED
     }
 
 }

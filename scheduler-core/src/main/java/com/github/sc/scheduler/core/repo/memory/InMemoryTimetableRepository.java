@@ -6,6 +6,7 @@ import com.github.sc.scheduler.core.repo.TimetableRepository;
 import com.github.sc.scheduler.core.utils.IdGenerator;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,7 +24,13 @@ public class InMemoryTimetableRepository implements TimetableRepository {
     }
 
     @Override
-    public Optional<SchedulingParams> getTask(String taskId) {
+    public List<SchedulingParams> getAll(Collection<String> taskIds) {
+        HashSet<String> ids = new HashSet<>(taskIds);
+        return data.values().stream().filter(p -> ids.contains(p.getTaskId())).collect(toList());
+    }
+
+    @Override
+    public Optional<SchedulingParams> get(String taskId) {
         return Optional.ofNullable(data.get(taskId));
     }
 

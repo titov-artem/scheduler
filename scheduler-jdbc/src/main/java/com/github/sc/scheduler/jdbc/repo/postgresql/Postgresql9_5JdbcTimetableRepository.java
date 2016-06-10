@@ -10,4 +10,9 @@ public class Postgresql9_5JdbcTimetableRepository extends AbstractJdbcTimetableR
     protected DSLContext DSL() {
         return DSL.using(SQLDialect.POSTGRES_9_5);
     }
+
+    @Override
+    protected int getMaxInSize() {
+        return 30000;
+    }
 }

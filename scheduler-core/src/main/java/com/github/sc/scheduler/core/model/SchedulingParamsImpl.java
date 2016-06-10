@@ -140,12 +140,12 @@ public class SchedulingParamsImpl implements SchedulingParams {
         private SchedulingParams instance;
 
         private Builder(EngineRequirements engineRequirements, SchedulingType type, String param) {
-            this(null, engineRequirements, type, param, 0, false, false);
+            this(null, engineRequirements, type, param, 1, false, false);
         }
 
 
         private Builder(@Nullable String name, EngineRequirements engineRequirements, SchedulingType type, String param) {
-            this(name, engineRequirements, type, param, 0, false, false);
+            this(name, engineRequirements, type, param, 1, false, false);
         }
 
         private Builder(@Nullable String name,

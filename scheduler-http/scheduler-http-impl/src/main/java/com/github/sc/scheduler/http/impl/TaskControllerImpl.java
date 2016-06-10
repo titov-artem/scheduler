@@ -59,7 +59,7 @@ public class TaskControllerImpl implements TaskController {
 
     @Override
     public TaskView get(String taskId) {
-        Optional<SchedulingParams> maybeParams = timetableRepository.getTask(taskId);
+        Optional<SchedulingParams> maybeParams = timetableRepository.get(taskId);
         if (!maybeParams.isPresent()) {
             throw new NotFoundException();
         }

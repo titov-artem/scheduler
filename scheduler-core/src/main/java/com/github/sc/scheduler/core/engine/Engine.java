@@ -7,8 +7,10 @@ import com.github.sc.scheduler.core.model.RunImpl;
 import com.github.sc.scheduler.core.model.TaskArgs;
 import com.github.sc.scheduler.core.repo.ActiveRunsRepository;
 import com.github.sc.scheduler.core.repo.TaskArgsRepository;
+import com.github.sc.scheduler.core.repo.TimetableRepository;
 import com.github.sc.scheduler.core.utils.LocalTaskScheduler;
 import com.github.sc.scheduler.core.utils.SchedulerHostProvider;
+import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MarkerFactory;
@@ -45,6 +47,7 @@ public class Engine {
     /* Dependencies */
     private ActiveRunsRepository activeRunsRepository;
     private TaskArgsRepository taskArgsRepository;
+    private TimetableRepository timetableRepository;
     private ExecutorLookupService executorLookupService;
     private TaskPicker taskPicker;
     private Clock clock = Clock.systemDefaultZone();
@@ -112,24 +115,24 @@ public class Engine {
 
         EngineState.Capacity capacity = state.getCapacity();
         if (capacity.freeThreads == 0) {
-            log.trace("No free scheduler engine threads");
+            log.debug("No free scheduler engine threads");
             return;
         }
         if (capacity.freeCapacity == 0) {
-            log.trace("No free scheduler engine capacity");
+            log.debug("No free scheduler engine capacity");
             return;
         }
 
-        log.trace("Restoring acquired runs");
-        restoreAcquiredRuns();
-        restoreHangedRuns();
+        log.debug("Restoring acquired runs");
+        freeOrphanedAcquiredRuns();
+        processedHangedRuns();
 
         List<Run> runs = activeRunsRepository.getAll();
         if (runs.isEmpty()) {
-            log.trace("No any task in the queue");
+            log.debug("No any task in the queue");
             return;
         }
-        log.trace("Found {} tasks in queue", runs.size());
+        log.debug("Found {} tasks in queue", runs.size());
 
         List<Run> pendingRuns = runs.stream()
                 .filter(r -> r.getStatus() == Run.Status.PENDING)
@@ -137,10 +140,10 @@ public class Engine {
                 .collect(toList());
         List<Run> runsToStart = taskPicker.pickRuns(pendingRuns, toDescriptor(state));
         if (runsToStart.isEmpty()) {
-            log.trace("No appropriate tasks to start");
+            log.debug("No appropriate tasks to start");
             return;
         }
-        log.trace("Found {} tasks to start", runsToStart.size());
+        log.debug("Found {} tasks to start", runsToStart.size());
 
         for (final Run run : runsToStart) {
             try {
@@ -149,7 +152,7 @@ public class Engine {
                         state.free(run);
                     }
                 } else {
-                    log.trace("Engine capacity ended: {}. No more task can be started", state);
+                    log.debug("Engine capacity ended: {}. No more task can be started", state);
                     break;
                 }
             } catch (Throwable e) {
@@ -183,13 +186,13 @@ public class Engine {
     /**
      * Remove host and acquired time for runs with expired START_INTERVAL
      */
-    private void restoreAcquiredRuns() {
+    private void freeOrphanedAcquiredRuns() {
         Instant now = Instant.now(clock);
         activeRunsRepository.getAll().stream()
                 .filter(r -> r.getStatus() == Run.Status.PENDING)
                 .filter(r -> r.getHost() != null)
                 .filter(r -> r.getAcquiredTime() != null && r.getAcquiredTime().plus(START_INTERVAL).isBefore(now))
-                .peek(r -> log.trace("Restoring run {} for task {}", r.getRunId(), r.getTaskId()))
+                .peek(r -> log.debug("Restoring run {} for task {}", r.getRunId(), r.getTaskId()))
                 .forEach(r -> activeRunsRepository.tryUpdate(
                         RunImpl.builder(r)
                                 .withHost(null)
@@ -198,13 +201,42 @@ public class Engine {
                 ));
     }
 
-    private void restoreHangedRuns() {
+    private void processedHangedRuns() {
         Instant now = Instant.now(clock);
-        activeRunsRepository.getAll().stream()
+        List<Run> hangedRuns = activeRunsRepository.getAll().stream()
                 .filter(r -> r.getStatus() == Run.Status.RUNNING)
                 .filter(r -> r.getPingTime() != null && r.getPingTime().plusSeconds(pickPeriod * 3).isBefore(now))
-                .peek(r -> log.trace("Failing hanged run {} for task {}", r.getRunId(), r.getTaskId()))
-                .forEach(r -> fail(r, "Task hanged"));
+                .map(this::hanged)
+                .collect(toList());
+        hangedRuns.stream()
+//                .filter(run -> !run.isRestartOnReboot())
+                .peek(r -> log.debug("Failing hanged run {} for task {}", r.getRunId(), r.getTaskId()))
+                .map(activeRunsRepository::tryUpdate);
+
+        List<Run> runsToRestart = hangedRuns.stream()
+                .filter(Run::isRestartOnReboot)
+                .collect(toList());
+        rescheduleRuns(runsToRestart);
+    }
+
+    private void rescheduleRuns(List<Run> runs) {
+        // currently do nothing
+        // code below has problem: we need atomically update old run to new status and create ONLY ONE new run
+        // to replace old one
+
+        /*Set<String> taskIds = runs.stream().map(Run::getTaskId).collect(toSet());
+        Map<String, Integer> taskConcurrencyLevel = timetableRepository.getAll(taskIds).stream()
+                .collect(toMap(SchedulingParams::getTaskId, SchedulingParams::getConcurrencyLevel));
+        runs.forEach(run -> {
+            Run runToStart = RunImpl.builder(run).withRunId(Run.FAKE_RUN_ID).build();
+            // todo think about atomicity of this operation
+            activeRunsRepository.tryUpdate(run);
+            List<Run> started = activeRunsRepository.create(runToStart, 1, taskConcurrencyLevel.get(run.getTaskId()));
+            if (started.isEmpty()) {
+                log.info("Can't recreated run {} due to concurrency level", run.getRunId());
+            }
+            log.info("Run {} restarted. Reason: {}, new run id {}", run.getRunId(), run.getStatus(), started.get(0).getRunId());
+        });*/
     }
 
     private boolean tryStart(Run run) {
@@ -214,16 +246,16 @@ public class Engine {
             return false;
         }
         if (!Objects.equals(acquiredRun.getHost(), host)) {
-            log.trace("Run {} acquired by another host", acquiredRun.getRunId());
+            log.debug("Run {} acquired by another host", acquiredRun.getRunId());
             return false;
         }
         Optional<Runnable> executor = executorLookupService.get(acquiredRun.getEngineRequirements().getExecutor());
         if (!executor.isPresent()) {
-            fail(acquiredRun, "No executor found");
+            activeRunsRepository.tryUpdate(failed(acquiredRun, "No executor found"));
             return false;
         }
         Optional<TaskArgs> taskArgs = taskArgsRepository.get(acquiredRun.getTaskId());
-        log.trace("Starting run {} with params {}", acquiredRun, taskArgs);
+        log.debug("Starting run {} with params {}", acquiredRun, taskArgs);
         RunContext context = new RunContext(acquiredRun, taskArgs.orElse(null));
         start(acquiredRun, executor.get(), context);
         return true;
@@ -268,15 +300,20 @@ public class Engine {
         );
     }
 
-    @Nullable
-    private Run fail(Run run, String reason) {
-        return activeRunsRepository.tryUpdate(
-                RunImpl.builder(run)
-                        .withStatus(Run.Status.FAILED)
-                        .withEndTime(Instant.now(clock))
-                        .withMessage(reason)
-                        .build()
-        );
+    private Run failed(Run run, String reason) {
+        return RunImpl.builder(run)
+                .withStatus(Run.Status.FAILED)
+                .withEndTime(Instant.now(clock))
+                .withMessage(reason)
+                .build();
+    }
+
+    private Run hanged(Run run) {
+        return RunImpl.builder(run)
+                .withStatus(Run.Status.HANGED)
+                .withEndTime(Instant.now(clock))
+                .withMessage("Hanged!")
+                .build();
     }
 
     private EngineDescriptor toDescriptor(EngineState state) {
@@ -335,14 +372,14 @@ public class Engine {
         }
 
         private void executeTask() {
-            log.trace("Set status RUNNING to run {}", r.getRunId());
+            log.debug("Set status RUNNING to run {}", r.getRunId());
             Run run = tryRunning(r);
             if (run == null) {
-                log.trace("No run with id {} for task {} found!", r.getRunId(), r.getTaskId());
+                log.debug("No run with id {} for task {} found!", r.getRunId(), r.getTaskId());
                 return;
             }
             if (!Objects.equals(run.getHost(), host)) {
-                log.trace("Host {} lost lock on run {}", host, run.getRunId());
+                log.debug("Host {} lost lock on run {}", host, run.getRunId());
                 return;
             }
             if (run.getStatus() != Run.Status.RUNNING) {
@@ -351,7 +388,7 @@ public class Engine {
             }
             RunContext.set(context);
             try {
-                log.trace("Starting run {}", run.getRunId());
+                log.debug("Starting run {}", run.getRunId());
                 executor.run();
                 Run completed = complete(run, context.getMessage());
                 if (completed == null) {
@@ -362,22 +399,30 @@ public class Engine {
                     log.error("Failed to mark run with id {} as COMPLETED", r.getRunId());
                 }
             } catch (Throwable e) {
-                String userMessage = context.getMessage();
-                String reason = String.format("Run %d of task %s failed with %s: %s",
-                        run.getRunId(), run.getTaskId(),
-                        e instanceof Error ? "ERROR" : "exception", e.getMessage());
-                reason = userMessage == null ? reason : userMessage + "; " + reason;
-                if (e instanceof Error) {
+                String reason = getFailReason(run);
+                Run failed = failed(run, reason);
+//                if (run.isRestartOnFail()) {
+//                    rescheduleRuns(Collections.singletonList(failed));
+//                } else {
+                activeRunsRepository.tryUpdate(failed);
+//                }
+                if (e instanceof Exception) {
+                    log.error(reason, e);
+                } else {
                     log.error(MarkerFactory.getMarker("FATAL"), reason, e);
-                    fail(run, reason);
-                    throw e;
+                    throw Throwables.propagate(e);
                 }
-                log.error(reason, e);
-                fail(run, reason);
             } finally {
                 RunContext.clear();
                 state.free(run);
             }
+        }
+
+        private String getFailReason(Run run) {
+            String userMessage = context.getMessage();
+            String reason = String.format("Run %d of task %s failed with throwable", run.getRunId());
+            reason = userMessage == null ? reason : userMessage + "; " + reason;
+            return reason;
         }
     }
 
@@ -390,6 +435,11 @@ public class Engine {
     @Required
     public void setTaskArgsRepository(TaskArgsRepository taskArgsRepository) {
         this.taskArgsRepository = taskArgsRepository;
+    }
+
+    @Required
+    public void setTimetableRepository(TimetableRepository timetableRepository) {
+        this.timetableRepository = timetableRepository;
     }
 
     @Required

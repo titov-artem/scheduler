@@ -15,13 +15,16 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Simple in-memory repo with emulation of per document locks;
  */
 public class InMemoryRunsRepository implements RunsRepository {
 
+    protected final ReadWriteLock globalLock = new ReentrantReadWriteLock();
     protected final ConcurrentMap<Long, RunContainer> data = new ConcurrentHashMap<>();
     private final AtomicLong idGenerator = new AtomicLong();
 

@@ -143,7 +143,7 @@ public abstract class AbstractJdbcRunsRepository implements RunsRepository {
         return RunImpl.builder(run).withRunId(runId).build();
     }
 
-    private Number getKey(KeyHolder keyHolder, String keyName) {
+    protected final Number getKey(KeyHolder keyHolder, String keyName) {
         Map<String, Object> keys = keyHolder.getKeys();
         if (keys.size() == 1) return keyHolder.getKey();
         return (Number) keys.get(keyName);
