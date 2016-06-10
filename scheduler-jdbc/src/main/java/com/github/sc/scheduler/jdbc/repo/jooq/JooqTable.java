@@ -8,6 +8,11 @@ import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Jooq table with specified primary key field implementation
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class JooqTable implements Table<Record>, QueryPartInternal {
 
     private final Table<Record> table;

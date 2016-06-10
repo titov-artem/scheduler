@@ -5,6 +5,12 @@ import com.github.sc.scheduler.core.model.Run;
 import java.time.Instant;
 import java.util.List;
 
+/**
+ * Store runs that are currently running or pending. When task is starting, new run will be
+ * added here
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public interface ActiveRunsRepository extends RunsRepository {
 
     /**

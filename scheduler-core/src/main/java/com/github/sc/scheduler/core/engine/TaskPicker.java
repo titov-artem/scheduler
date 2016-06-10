@@ -5,6 +5,9 @@ import com.github.sc.scheduler.core.model.Run;
 
 import java.util.List;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 // todo add better understanding of this interface
 public interface TaskPicker {
 

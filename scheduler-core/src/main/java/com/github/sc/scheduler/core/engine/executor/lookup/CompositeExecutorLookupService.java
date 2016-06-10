@@ -10,6 +10,8 @@ import java.util.Optional;
 /**
  * Lookup task executor in underling registered services in order of registration, until the first one will
  * be found
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public class CompositeExecutorLookupService implements ExecutorLookupService {
     private static final Logger log = LoggerFactory.getLogger(CompositeExecutorLookupService.class);

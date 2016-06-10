@@ -11,6 +11,8 @@ import java.util.Optional;
 
 /**
  * Lookup task executor using it's name like spring bean name
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public class SpringContextExecutorLookupService implements ExecutorLookupService, ApplicationContextAware {
     private static final Logger log = LoggerFactory.getLogger(SpringContextExecutorLookupService.class);

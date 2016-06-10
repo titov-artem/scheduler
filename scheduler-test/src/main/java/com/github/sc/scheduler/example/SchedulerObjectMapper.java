@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.deser.DefaultDeserializationContext;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class SchedulerObjectMapper extends ObjectMapper {
 
     public SchedulerObjectMapper() {

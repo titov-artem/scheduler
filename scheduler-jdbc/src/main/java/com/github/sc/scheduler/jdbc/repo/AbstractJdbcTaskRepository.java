@@ -16,6 +16,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public abstract class AbstractJdbcTaskRepository implements TaskRepository {
 
     public static final RowMapper<Task> ROW_MAPPER = (rs, i) ->

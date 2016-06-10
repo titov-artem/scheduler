@@ -2,6 +2,11 @@ package com.github.sc.scheduler.core.utils;
 
 import org.springframework.beans.factory.annotation.Required;
 
+/**
+ * Return host name, that was passed via property.
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public final class FromPropertySchedulerHostProvider implements SchedulerHostProvider {
 
     private String host;

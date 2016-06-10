@@ -5,6 +5,9 @@ import org.springframework.beans.factory.annotation.Required;
 
 import javax.annotation.PostConstruct;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class FlywayInit {
 
     private Flyway flyway;

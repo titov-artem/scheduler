@@ -7,6 +7,8 @@ import java.util.Optional;
 
 /**
  * Lookup task executor on class path, using it's name as class name
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public class ByClassNameExecutorLookupService implements ExecutorLookupService {
     private static final Logger log = LoggerFactory.getLogger(ByClassNameExecutorLookupService.class);

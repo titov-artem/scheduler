@@ -25,6 +25,9 @@ import java.util.Optional;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toMap;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class TaskControllerImpl implements TaskController {
 
     private TaskService taskService;

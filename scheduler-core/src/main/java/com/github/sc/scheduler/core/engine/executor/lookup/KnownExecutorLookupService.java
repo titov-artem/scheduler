@@ -9,6 +9,8 @@ import java.util.Optional;
 
 /**
  * Lookup task executor searching throw registered ones
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public class KnownExecutorLookupService implements ExecutorLookupService {
     private static final Logger log = LoggerFactory.getLogger(KnownExecutorLookupService.class);

@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Local task scheduler with task's exceptions handling
  *
- * @author scorpion@yandex-team on 12.03.15.
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public final class LocalTaskScheduler {
     private static final Logger LOG = LoggerFactory.getLogger(LocalTaskScheduler.class);

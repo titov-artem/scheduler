@@ -6,6 +6,11 @@ import org.jooq.*;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Primary key implementation
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class JooqPrimaryKey implements UniqueKey<Record> {
 
     private final Table<Record> table;

@@ -4,6 +4,8 @@ import java.util.function.Supplier;
 
 /**
  * Stub transaction support don't create any transactions
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public class StubTransactionSupport implements TransactionSupport {
 

@@ -5,6 +5,10 @@ import com.github.sc.scheduler.core.model.EngineDescriptor;
 
 import javax.annotation.concurrent.Immutable;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ * @see EngineDescriptor
+ */
 @Immutable
 public class EngineDescriptorView {
 

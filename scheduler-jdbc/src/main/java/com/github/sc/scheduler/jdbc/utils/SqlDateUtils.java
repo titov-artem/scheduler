@@ -5,6 +5,9 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public final class SqlDateUtils {
 
     private SqlDateUtils() {

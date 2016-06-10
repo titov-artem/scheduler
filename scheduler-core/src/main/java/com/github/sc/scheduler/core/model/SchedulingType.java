@@ -10,6 +10,9 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
 import java.util.Optional;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public enum SchedulingType {
     /**
      * Run task based on cron expression

@@ -7,6 +7,7 @@ import com.github.sc.scheduler.core.repo.HistoryRunsRepository;
 import com.github.sc.scheduler.core.repo.TaskRepository;
 import com.github.sc.scheduler.core.repo.TimetableRepository;
 import com.github.sc.scheduler.core.utils.LocalTaskScheduler;
+import com.github.sc.scheduler.core.utils.SchedulerHostProvider;
 import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,8 @@ import static java.util.stream.Collectors.*;
  * <li>remove completed runs from queue to history</li>
  * </ol>
  * Only one {@code RunMaster} is permitted for timetable per host
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public class RunMaster implements Runnable {
     /**
@@ -292,8 +295,8 @@ public class RunMaster implements Runnable {
     }
 
     @Required
-    public void setHost(String host) {
-        this.host = host;
+    public void setHostProvider(SchedulerHostProvider hostProvider) {
+        this.host = hostProvider.getHost();
     }
 
     /**

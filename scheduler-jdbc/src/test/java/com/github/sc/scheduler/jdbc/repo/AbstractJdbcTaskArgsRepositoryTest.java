@@ -17,6 +17,9 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @Transactional
 public abstract class AbstractJdbcTaskArgsRepositoryTest {

@@ -13,6 +13,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public abstract class AbstractJdbcTaskArgsRepository implements TaskArgsRepository {
 
     private JdbcOperations jdbcOperations;

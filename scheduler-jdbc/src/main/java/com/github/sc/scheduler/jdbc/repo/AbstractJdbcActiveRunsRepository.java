@@ -20,6 +20,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public abstract class AbstractJdbcActiveRunsRepository extends AbstractJdbcRunsRepository implements ActiveRunsRepository {
 
     private TransactionSupport transactionSupport;

@@ -5,6 +5,9 @@ import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class MySqlJdbcTaskRepository extends AbstractJdbcTaskRepository {
     @Override
     protected DSLContext DSL() {

@@ -3,6 +3,9 @@ package com.github.sc.scheduler.core.engine;
 import com.github.sc.scheduler.core.model.Run;
 import com.github.sc.scheduler.core.model.TaskArgs;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class RunContext {
 
     private static final ThreadLocal<RunContext> instance = new ThreadLocal<>();

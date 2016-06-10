@@ -4,6 +4,8 @@ import java.util.Optional;
 
 /**
  * Lookup task executor by its name
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public interface ExecutorLookupService {
 

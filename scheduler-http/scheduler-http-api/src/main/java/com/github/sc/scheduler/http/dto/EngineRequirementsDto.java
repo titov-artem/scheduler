@@ -8,6 +8,10 @@ import com.github.sc.scheduler.core.model.EngineRequirementsImpl;
 
 import javax.annotation.concurrent.Immutable;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ * @see EngineRequirements
+ */
 @Immutable
 public class EngineRequirementsDto {
 

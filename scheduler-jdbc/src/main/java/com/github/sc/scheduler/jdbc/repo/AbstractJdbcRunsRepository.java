@@ -29,7 +29,7 @@ import java.util.*;
 import static java.util.stream.Collectors.toList;
 
 /**
- * @author titov.artem.u@yandex.com on 02.11.15.
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public abstract class AbstractJdbcRunsRepository implements RunsRepository {
 

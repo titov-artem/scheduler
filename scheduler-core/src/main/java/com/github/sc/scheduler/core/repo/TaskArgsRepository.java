@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Store params that will be passed to task
+ * Store args that will be passed to task
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public interface TaskArgsRepository {
 

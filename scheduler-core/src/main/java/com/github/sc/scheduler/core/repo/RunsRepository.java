@@ -8,6 +8,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Abstract repository for storing runs
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public interface RunsRepository {
 
     Optional<Run> get(long runId);

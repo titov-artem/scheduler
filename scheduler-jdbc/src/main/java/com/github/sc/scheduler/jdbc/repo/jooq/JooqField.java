@@ -7,6 +7,12 @@ import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Map;
 
+/**
+ * Jooq field implementation
+ *
+ * @param <T>
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class JooqField<T> implements TableField<Record, T> {
 
     private final Field<T> field;

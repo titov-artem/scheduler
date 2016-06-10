@@ -6,6 +6,9 @@ import javax.annotation.concurrent.Immutable;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 @Immutable
 public class SchedulingParamsImpl implements SchedulingParams {
 

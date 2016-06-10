@@ -6,6 +6,11 @@ import com.github.sc.scheduler.http.dto.TaskView;
 import javax.ws.rs.*;
 import java.util.List;
 
+/**
+ * Controller for operating with tasks in scheduler
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 @Path("/task")
 public interface TaskController extends JsonAPI {
 

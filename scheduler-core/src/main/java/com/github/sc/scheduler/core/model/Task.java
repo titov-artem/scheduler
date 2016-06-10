@@ -6,6 +6,8 @@ import java.time.Instant;
 
 /**
  * Task in scheduler. Contains internal scheduler field for correct task execution and locking
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public interface Task {
 

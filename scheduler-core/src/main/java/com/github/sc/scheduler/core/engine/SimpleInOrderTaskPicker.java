@@ -9,6 +9,8 @@ import java.util.List;
 
 /**
  * Pick tasks in their order.
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public class SimpleInOrderTaskPicker implements TaskPicker {
 

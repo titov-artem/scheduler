@@ -15,6 +15,9 @@ import org.junit.Test;
 import java.time.Clock;
 import java.util.Collections;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class InMemoryOneInstanceIntegrationTest {
 
     @Test
@@ -26,6 +29,7 @@ public class InMemoryOneInstanceIntegrationTest {
         InMemoryTaskArgsRepository taskArgsRepository = new InMemoryTaskArgsRepository();
         InMemoryTaskRepository taskRepository = new InMemoryTaskRepository();
         InMemoryTimetableRepository timetableRepository = new InMemoryTimetableRepository();
+        FromPropertySchedulerHostProvider hostProvider = new FromPropertySchedulerHostProvider("localhost");
 
         RunMaster runMaster = new RunMaster();
         runMaster.setActiveRunsRepository(activeRunsRepository);
@@ -33,7 +37,7 @@ public class InMemoryOneInstanceIntegrationTest {
         runMaster.setTaskRepository(taskRepository);
         runMaster.setTimetableRepository(timetableRepository);
         runMaster.setClock(clock);
-        runMaster.setHost("localhost");
+        runMaster.setHostProvider(hostProvider);
         runMaster.setPeriodSeconds(1);
 
         TaskPicker taskPicker = new SimpleInOrderTaskPicker();
@@ -45,11 +49,11 @@ public class InMemoryOneInstanceIntegrationTest {
         engine.setExecutorLookupService(executorLookupService);
         engine.setTaskPicker(taskPicker);
         engine.setClock(clock);
-        engine.setHostProvider(new FromPropertySchedulerHostProvider("localhost"));
+        engine.setHostProvider(hostProvider);
         engine.setCapacity(100);
         engine.setThreadsCount(2);
         engine.setService("main");
-        engine.setPickPeriod(1);
+        engine.setPickPeriodSeconds(1);
 
         runMaster.setEngines(Collections.singleton(engine));
         runMaster.start();

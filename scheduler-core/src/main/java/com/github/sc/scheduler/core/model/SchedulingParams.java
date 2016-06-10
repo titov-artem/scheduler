@@ -6,6 +6,8 @@ import java.util.Optional;
 
 /**
  * Contains fields, that necessary for task scheduling and that don't change by run master while task scheduling
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public interface SchedulingParams {
 

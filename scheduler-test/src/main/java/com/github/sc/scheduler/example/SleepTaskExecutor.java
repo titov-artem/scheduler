@@ -5,6 +5,12 @@ import com.github.sc.scheduler.core.model.TaskArgs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Simple task executor, which sleep for time specified in task args {@code time} parameter
+ * and fails if no such parameter presented
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class SleepTaskExecutor implements Runnable {
 
     private static final Logger log = LoggerFactory.getLogger(SleepTaskExecutor.class);

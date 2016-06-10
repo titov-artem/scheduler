@@ -36,14 +36,30 @@ import static java.util.stream.Collectors.toList;
  * Engine starts and execute runs in scheduler.
  * <p>
  * In main loop it fix failed to start runs
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public class Engine {
     /**
      * Time interval that is given to run master to create task run and store it into repository
      */
     public static final Duration START_INTERVAL = Duration.ofMillis(TimeUnit.MINUTES.toMillis(1));
+    /**
+     * Default hanged multiplier, that used to determine hanged runs
+     *
+     * @see #setHangedMultiplier(int)
+     */
+    public static final int DEFAULT_HANGED_MULTIPLIER = 10;
+
+    /**
+     * Default pick period, that used to pick runs from repository and start them
+     *
+     * @see #setPickPeriodSeconds(long)
+     */
+    public static final long DEFAULT_PICK_PERIOD_SECONDS = TimeUnit.MINUTES.toSeconds(1);
+
     private static final Logger log = LoggerFactory.getLogger(Engine.class);
-    private static final long DEFAULT_PICK_PERIOD = TimeUnit.MINUTES.toSeconds(1);
+
     /* Dependencies */
     private ActiveRunsRepository activeRunsRepository;
     private TaskArgsRepository taskArgsRepository;
@@ -57,7 +73,8 @@ public class Engine {
     private int threadsCount;
     private int capacity;
     private String service;
-    private long pickPeriod = DEFAULT_PICK_PERIOD;
+    private long pickPeriodSeconds = DEFAULT_PICK_PERIOD_SECONDS;
+    private int hangedMultiplier = DEFAULT_HANGED_MULTIPLIER;
 
     /* internal fields */
     /**
@@ -81,7 +98,7 @@ public class Engine {
     public void start() {
         state = new EngineState(threadsCount, capacity);
         executorService = Executors.newFixedThreadPool(threadsCount);
-        localTaskScheduler.scheduleWithFixRate(getClass().getSimpleName(), this::run, 0, pickPeriod, TimeUnit.SECONDS);
+        localTaskScheduler.scheduleWithFixRate(getClass().getSimpleName(), this::run, 0, pickPeriodSeconds, TimeUnit.SECONDS);
     }
 
     @PreDestroy
@@ -205,7 +222,7 @@ public class Engine {
         Instant now = Instant.now(clock);
         List<Run> hangedRuns = activeRunsRepository.getAll().stream()
                 .filter(r -> r.getStatus() == Run.Status.RUNNING)
-                .filter(r -> r.getPingTime() != null && r.getPingTime().plusSeconds(pickPeriod * 3).isBefore(now))
+                .filter(r -> r.getPingTime() != null && r.getPingTime().plusSeconds(pickPeriodSeconds * hangedMultiplier).isBefore(now))
                 .map(this::hanged)
                 .collect(toList());
         hangedRuns.stream()
@@ -476,7 +493,24 @@ public class Engine {
         this.service = service;
     }
 
-    public void setPickPeriod(long pickPeriod) {
-        this.pickPeriod = pickPeriod;
+    /**
+     * The period after which engine tries to obtain tasks from the repository and run them
+     *
+     * @param pickPeriodSeconds period in seconds
+     */
+    public void setPickPeriodSeconds(long pickPeriodSeconds) {
+        this.pickPeriodSeconds = pickPeriodSeconds;
+    }
+
+    /**
+     * Hanged multiplier tell engine when it can assume, that run is hanged. On each cycle engine ping all runs,
+     * that it has. If run's ping time is "enough" old, then engine assume that run hanged. As "enough" engine
+     * use {@code hangMultiplier * pickPeriod}. If run's {@code pingTime + hangMultiplier * pickPeriod} is
+     * less than now, than run is assumed hanged
+     *
+     * @param hangedMultiplier multiplier
+     */
+    public void setHangedMultiplier(int hangedMultiplier) {
+        this.hangedMultiplier = hangedMultiplier;
     }
 }

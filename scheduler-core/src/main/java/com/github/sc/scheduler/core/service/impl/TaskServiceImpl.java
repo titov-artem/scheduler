@@ -12,6 +12,9 @@ import org.springframework.beans.factory.annotation.Required;
 
 import java.util.Optional;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class TaskServiceImpl implements TaskService {
 
     private TaskRepository taskRepository;

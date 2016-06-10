@@ -2,6 +2,9 @@ package com.github.sc.scheduler.example;
 
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class Application {
 
     public static void main(String[] args) {

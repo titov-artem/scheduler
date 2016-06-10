@@ -7,6 +7,8 @@ import java.time.Instant;
 
 /**
  * Single run of the task. Must be created with empty host and status PENDING
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public interface Run {
 

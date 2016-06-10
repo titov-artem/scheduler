@@ -6,6 +6,9 @@ import javax.annotation.concurrent.Immutable;
 import java.time.Instant;
 import java.util.Objects;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 @Immutable
 public class RunImpl implements Run {
 

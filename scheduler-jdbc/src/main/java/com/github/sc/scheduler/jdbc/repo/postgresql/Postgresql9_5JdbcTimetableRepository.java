@@ -5,6 +5,9 @@ import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class Postgresql9_5JdbcTimetableRepository extends AbstractJdbcTimetableRepository {
     @Override
     protected DSLContext DSL() {

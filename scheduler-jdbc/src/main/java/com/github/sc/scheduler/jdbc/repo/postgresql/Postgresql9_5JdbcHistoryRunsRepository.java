@@ -7,7 +7,7 @@ import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
 /**
- * @author titov.artem.u@yandex.com on 02.11.15.
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public class Postgresql9_5JdbcHistoryRunsRepository extends AbstractJdbcHistoryRunsRepositoryImpl implements HistoryRunsRepository {
     @Override

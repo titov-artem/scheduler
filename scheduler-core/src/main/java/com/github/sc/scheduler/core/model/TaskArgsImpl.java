@@ -10,6 +10,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class TaskArgsImpl implements TaskArgs {
 
     private final String taskId;

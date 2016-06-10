@@ -13,6 +13,10 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.util.Optional;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ * @see SchedulingParams
+ */
 @Immutable
 public class TaskForm {
 

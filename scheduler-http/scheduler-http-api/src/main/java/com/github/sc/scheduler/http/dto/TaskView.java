@@ -11,6 +11,11 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ * @see SchedulingParams
+ * @see Run
+ */
 @Immutable
 public class TaskView extends TaskForm {
 

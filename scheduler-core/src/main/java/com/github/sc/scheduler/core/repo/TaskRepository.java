@@ -7,6 +7,11 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Store scheduler internal tasks
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public interface TaskRepository {
 
     List<Task> getAll();

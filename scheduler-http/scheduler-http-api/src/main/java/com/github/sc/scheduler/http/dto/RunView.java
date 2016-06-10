@@ -6,6 +6,10 @@ import com.github.sc.scheduler.core.model.Run;
 import javax.annotation.concurrent.Immutable;
 import java.time.Instant;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ * @see Run
+ */
 @Immutable
 public class RunView {
     private final long id;

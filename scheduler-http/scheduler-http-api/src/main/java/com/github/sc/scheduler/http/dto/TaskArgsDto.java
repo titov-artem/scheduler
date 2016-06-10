@@ -11,6 +11,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ * @see TaskArgs
+ */
 @Immutable
 public class TaskArgsDto {
 

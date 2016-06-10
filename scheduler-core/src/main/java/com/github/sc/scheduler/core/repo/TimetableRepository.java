@@ -6,6 +6,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Store scheduler params, that are main entities in scheduler
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public interface TimetableRepository {
 
     List<SchedulingParams> getAll();

@@ -9,7 +9,15 @@ import java.time.LocalDateTime;
 
 import static org.jooq.impl.DSL.field;
 
-public class SQLSchema {
+/**
+ * Contains description of all tables and fields in scheduler
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
+final class SQLSchema {
+    private SQLSchema() {
+    }
+
     static final Table<Record> TASK_TABLE = JooqTable.table("sch_task", field("task_id", String.class));
     static final Table<Record> TASK_ARGS_TABLE = JooqTable.table("sch_task_args");
     static final Table<Record> TIMETABLE_TABLE = JooqTable.table("sch_timetable", field("task_id", String.class));

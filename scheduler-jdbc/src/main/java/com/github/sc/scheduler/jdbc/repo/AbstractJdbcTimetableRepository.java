@@ -20,6 +20,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.*;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public abstract class AbstractJdbcTimetableRepository implements TimetableRepository {
 
     private static final RowMapper<SchedulingParams> ROW_MAPPER = (rs, i) ->

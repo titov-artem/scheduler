@@ -4,6 +4,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.Immutable;
 import java.util.Objects;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 @Immutable
 public class EngineRequirementsImpl implements EngineRequirements {
 

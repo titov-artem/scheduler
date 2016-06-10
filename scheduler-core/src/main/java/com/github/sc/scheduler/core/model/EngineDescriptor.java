@@ -4,6 +4,8 @@ import javax.annotation.Nonnull;
 
 /**
  * Describe engine host
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public interface EngineDescriptor {
 

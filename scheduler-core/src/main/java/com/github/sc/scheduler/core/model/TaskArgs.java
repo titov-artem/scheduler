@@ -6,7 +6,9 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Params that will be passed to task when it will be executed
+ * Args that will be passed to task when it will be executed
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public interface TaskArgs {
 

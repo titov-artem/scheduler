@@ -4,6 +4,8 @@ import javax.annotation.Nonnull;
 
 /**
  * Requirements for Engine that will start task
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
  */
 public interface EngineRequirements {
 

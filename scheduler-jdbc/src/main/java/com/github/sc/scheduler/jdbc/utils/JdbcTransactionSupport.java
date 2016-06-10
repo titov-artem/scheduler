@@ -6,6 +6,12 @@ import org.springframework.transaction.support.TransactionOperations;
 
 import java.util.function.Supplier;
 
+/**
+ * Transaction support for jdbc repositories. Use injected transaction operations
+ * to maintain transaction
+ *
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 public class JdbcTransactionSupport implements TransactionSupport {
 
     private TransactionOperations transactionOperations;

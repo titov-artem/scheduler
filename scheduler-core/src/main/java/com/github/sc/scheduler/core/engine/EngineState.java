@@ -12,6 +12,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * @author Artem Titov titov.artem.u@yandex.com
+ */
 final class EngineState {
     private static final Logger log = LoggerFactory.getLogger(EngineState.class);
 
