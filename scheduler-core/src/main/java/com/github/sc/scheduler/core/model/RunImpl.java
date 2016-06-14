@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * @author Artem Titov titov.artem.u@yandex.com
@@ -26,6 +27,7 @@ public class RunImpl implements Run {
     private final boolean restartOnReboot;
     private final String message;
     private final int version;
+    private final String modToken;
 
     private RunImpl(long runId,
                     String taskId,
@@ -40,7 +42,8 @@ public class RunImpl implements Run {
                     boolean restartOnFail,
                     boolean restartOnReboot,
                     String message,
-                    int version) {
+                    int version,
+                    String modToken) {
         this.runId = runId;
         this.taskId = taskId;
         this.engineRequirements = engineRequirements;
@@ -55,6 +58,7 @@ public class RunImpl implements Run {
         this.restartOnFail = restartOnFail;
         this.message = message;
         this.version = version;
+        this.modToken = modToken;
     }
 
     public static Builder builder(Run run) {
@@ -63,6 +67,10 @@ public class RunImpl implements Run {
 
     public static Builder newRun(SchedulingParams task) {
         return new Builder(task);
+    }
+
+    public static Builder newRun(Run prototype) {
+        return new Builder(prototype.getTaskId(), prototype.getEngineRequirements(), prototype.isRestartOnFail(), prototype.isRestartOnReboot());
     }
 
     public static Builder builder(long runId,
@@ -151,12 +159,18 @@ public class RunImpl implements Run {
     }
 
     @Override
+    public String getModToken() {
+        return modToken;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         RunImpl run = (RunImpl) o;
         return Objects.equals(runId, run.runId) &&
                 Objects.equals(version, run.version) &&
+                Objects.equals(modToken, run.modToken) &&
                 Objects.equals(taskId, run.taskId) &&
                 Objects.equals(engineRequirements, run.engineRequirements) &&
                 Objects.equals(host, run.host) &&
@@ -173,7 +187,7 @@ public class RunImpl implements Run {
     @Override
     public int hashCode() {
         return Objects.hash(runId, taskId, engineRequirements, host, queuedTime, acquiredTime, startTime, endTime,
-                status, restartOnFail, restartOnReboot, message, version);
+                status, restartOnFail, restartOnReboot, message, modToken, version);
     }
 
     @Override
@@ -193,6 +207,7 @@ public class RunImpl implements Run {
                 ", status=" + status +
                 ", message='" + message + '\'' +
                 ", version=" + version +
+                ", modToken=" + modToken +
                 '}';
     }
 
@@ -200,8 +215,15 @@ public class RunImpl implements Run {
         private Run run;
 
         private Builder(SchedulingParams task) {
-            run = new RunImpl(FAKE_RUN_ID, task.getTaskId(), task.getEngineRequirements(), null, null, null, null, null, null,
-                    Status.PENDING, task.isRestartOnReboot(), task.isRestartOnFail(), null, 0);
+            this(task.getTaskId(), task.getEngineRequirements(), task.isRestartOnFail(), task.isRestartOnReboot());
+        }
+
+        private Builder(String taskId,
+                        EngineRequirements engineRequirements,
+                        boolean restartOnFail,
+                        boolean restartOnReboot) {
+            run = new RunImpl(FAKE_RUN_ID, taskId, engineRequirements, null, null, null, null, null, null,
+                    Status.PENDING, restartOnFail, restartOnReboot, null, 0, UUID.randomUUID().toString());
         }
 
         private Builder(Run run) {
@@ -215,14 +237,14 @@ public class RunImpl implements Run {
                         boolean restartOnReboot,
                         Status status,
                         Instant queuedTime) {
-            run = new RunImpl(runId, taskId, engineRequirements, queuedTime, null, null, null, null, null, status, restartOnFail, restartOnReboot, null, 0);
+            run = new RunImpl(runId, taskId, engineRequirements, queuedTime, null, null, null, null, null, status, restartOnFail, restartOnReboot, null, 0, UUID.randomUUID().toString());
         }
 
         public Builder withRunId(long runId) {
             run = new RunImpl(runId, run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
                     run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(),
                     run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
-                    run.getVersion());
+                    run.getVersion(), run.getModToken());
             return this;
         }
 
@@ -230,7 +252,7 @@ public class RunImpl implements Run {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), time,
                     run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(),
                     run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
-                    run.getVersion());
+                    run.getVersion(), run.getModToken());
             return this;
 
         }
@@ -240,7 +262,7 @@ public class RunImpl implements Run {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
                     host, run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(),
                     run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
-                    run.getVersion());
+                    run.getVersion(), run.getModToken());
             return this;
         }
 
@@ -248,7 +270,7 @@ public class RunImpl implements Run {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
                     run.getHost(), time, run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(),
                     run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
-                    run.getVersion());
+                    run.getVersion(), run.getModToken());
             return this;
         }
 
@@ -256,7 +278,7 @@ public class RunImpl implements Run {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
                     run.getHost(), run.getAcquiredTime(), time, run.getPingTime(), run.getEndTime(), run.getStatus(),
                     run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
-                    run.getVersion());
+                    run.getVersion(), run.getModToken());
             return this;
         }
 
@@ -264,7 +286,7 @@ public class RunImpl implements Run {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
                     run.getHost(), run.getAcquiredTime(), run.getStartTime(), time, run.getEndTime(), run.getStatus(),
                     run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
-                    run.getVersion());
+                    run.getVersion(), run.getModToken());
             return this;
 
         }
@@ -273,7 +295,7 @@ public class RunImpl implements Run {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
                     run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), time, run.getStatus(),
                     run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
-                    run.getVersion());
+                    run.getVersion(), run.getModToken());
             return this;
         }
 
@@ -281,7 +303,7 @@ public class RunImpl implements Run {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
                     run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), status,
                     run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
-                    run.getVersion());
+                    run.getVersion(), run.getModToken());
             return this;
         }
 
@@ -289,7 +311,7 @@ public class RunImpl implements Run {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
                     run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(),
                     run.isRestartOnFail(), run.isRestartOnReboot(), message,
-                    run.getVersion());
+                    run.getVersion(), run.getModToken());
             return this;
         }
 
@@ -297,7 +319,15 @@ public class RunImpl implements Run {
             run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
                     run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(),
                     run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
-                    version);
+                    version, run.getModToken());
+            return this;
+        }
+
+        public Builder withModToken(String modToken) {
+            run = new RunImpl(run.getRunId(), run.getTaskId(), run.getEngineRequirements(), run.getQueuedTime(),
+                    run.getHost(), run.getAcquiredTime(), run.getStartTime(), run.getPingTime(), run.getEndTime(), run.getStatus(),
+                    run.isRestartOnFail(), run.isRestartOnReboot(), run.getMessage(),
+                    run.getVersion(), modToken);
             return this;
         }
 

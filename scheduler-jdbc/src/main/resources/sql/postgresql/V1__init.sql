@@ -42,6 +42,7 @@ CREATE TABLE sch_run (
   restart_on_fail   BOOLEAN                           DEFAULT FALSE,
   restart_on_reboot BOOLEAN                           DEFAULT FALSE,
   message           VARCHAR(512)                      DEFAULT NULL,
+  mod_token         VARCHAR(36)                       DEFAULT 'new',
   version           INTEGER      NOT NULL             DEFAULT 1
 );
 CREATE INDEX ON sch_run (task_id);
@@ -62,6 +63,7 @@ CREATE TABLE sch_history_run (
   restart_on_fail   BOOLEAN                           DEFAULT FALSE,
   restart_on_reboot BOOLEAN                           DEFAULT FALSE,
   message           VARCHAR(512)                      DEFAULT NULL,
+  mod_token         VARCHAR(36)                       DEFAULT 'new',
   version           INTEGER      NOT NULL             DEFAULT 1
 );
 CREATE INDEX ON sch_history_run (task_id);

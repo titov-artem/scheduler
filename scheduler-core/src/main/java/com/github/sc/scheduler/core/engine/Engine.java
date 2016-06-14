@@ -1,10 +1,7 @@
 package com.github.sc.scheduler.core.engine;
 
 import com.github.sc.scheduler.core.engine.executor.lookup.ExecutorLookupService;
-import com.github.sc.scheduler.core.model.EngineDescriptor;
-import com.github.sc.scheduler.core.model.Run;
-import com.github.sc.scheduler.core.model.RunImpl;
-import com.github.sc.scheduler.core.model.TaskArgs;
+import com.github.sc.scheduler.core.model.*;
 import com.github.sc.scheduler.core.repo.ActiveRunsRepository;
 import com.github.sc.scheduler.core.repo.TaskArgsRepository;
 import com.github.sc.scheduler.core.repo.TimetableRepository;
@@ -17,7 +14,6 @@ import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.time.Clock;
@@ -30,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 
 /**
  * Engine starts and execute runs in scheduler.
@@ -226,7 +222,7 @@ public class Engine {
                 .map(this::hanged)
                 .collect(toList());
         hangedRuns.stream()
-//                .filter(run -> !run.isRestartOnReboot())
+                .filter(run -> !run.isRestartOnReboot())
                 .peek(r -> log.debug("Failing hanged run {} for task {}", r.getRunId(), r.getTaskId()))
                 .map(activeRunsRepository::tryUpdate);
 
@@ -237,35 +233,26 @@ public class Engine {
     }
 
     private void rescheduleRuns(List<Run> runs) {
-        // currently do nothing
-        // code below has problem: we need atomically update old run to new status and create ONLY ONE new run
-        // to replace old one
-
-        /*Set<String> taskIds = runs.stream().map(Run::getTaskId).collect(toSet());
+        Set<String> taskIds = runs.stream().map(Run::getTaskId).collect(toSet());
         Map<String, Integer> taskConcurrencyLevel = timetableRepository.getAll(taskIds).stream()
                 .collect(toMap(SchedulingParams::getTaskId, SchedulingParams::getConcurrencyLevel));
         runs.forEach(run -> {
-            Run runToStart = RunImpl.builder(run).withRunId(Run.FAKE_RUN_ID).build();
-            // todo think about atomicity of this operation
-            activeRunsRepository.tryUpdate(run);
-            List<Run> started = activeRunsRepository.create(runToStart, 1, taskConcurrencyLevel.get(run.getTaskId()));
-            if (started.isEmpty()) {
-                log.info("Can't recreated run {} due to concurrency level", run.getRunId());
+            Optional<Run> started = activeRunsRepository.recreate(run, taskConcurrencyLevel.get(run.getTaskId()));
+            if (!started.isPresent()) {
+                log.info("Can't recreated run {}", run.getRunId());
+                return;
             }
-            log.info("Run {} restarted. Reason: {}, new run id {}", run.getRunId(), run.getStatus(), started.get(0).getRunId());
-        });*/
+            log.info("Run {} restarted. Reason: {}, new run id {}", run.getRunId(), run.getStatus(), started.get().getRunId());
+        });
     }
 
     private boolean tryStart(Run run) {
-        Run acquiredRun = tryAcquire(run);
-        if (acquiredRun == null) {
-            log.error("Failed to start run {} because it wasn't found", run);
+        Optional<Run> acquiredRunOpt = tryAcquire(run);
+        if (!acquiredRunOpt.isPresent() || !Objects.equals(acquiredRunOpt.get().getHost(), host)) {
+            log.debug("Can't {} acquire run", run.getRunId());
             return false;
         }
-        if (!Objects.equals(acquiredRun.getHost(), host)) {
-            log.debug("Run {} acquired by another host", acquiredRun.getRunId());
-            return false;
-        }
+        Run acquiredRun = acquiredRunOpt.get();
         Optional<Runnable> executor = executorLookupService.get(acquiredRun.getEngineRequirements().getExecutor());
         if (!executor.isPresent()) {
             activeRunsRepository.tryUpdate(failed(acquiredRun, "No executor found"));
@@ -285,8 +272,7 @@ public class Engine {
     // todo think, maybe move this methods into repository to use db time instead of local machine time
     // todo it is possible to use custom clock, which will be initialized from db clock and sync with it sometimes
 
-    @Nullable
-    private Run tryAcquire(Run run) {
+    private Optional<Run> tryAcquire(Run run) {
         return activeRunsRepository.tryUpdate(
                 RunImpl.builder(run)
                         .withHost(host)
@@ -295,8 +281,7 @@ public class Engine {
         );
     }
 
-    @Nullable
-    private Run tryRunning(Run run) {
+    private Optional<Run> tryRunning(Run run) {
         return activeRunsRepository.tryUpdate(
                 RunImpl.builder(run)
                         .withStatus(Run.Status.RUNNING)
@@ -306,8 +291,7 @@ public class Engine {
         );
     }
 
-    @Nullable
-    private Run complete(Run run, String message) {
+    private Optional<Run> complete(Run run, String message) {
         return activeRunsRepository.tryUpdate(
                 RunImpl.builder(run)
                         .withStatus(Run.Status.COMPLETE)
@@ -390,11 +374,12 @@ public class Engine {
 
         private void executeTask() {
             log.debug("Set status RUNNING to run {}", r.getRunId());
-            Run run = tryRunning(r);
-            if (run == null) {
+            Optional<Run> runOpt = tryRunning(r);
+            if (!runOpt.isPresent()) {
                 log.debug("No run with id {} for task {} found!", r.getRunId(), r.getTaskId());
                 return;
             }
+            Run run = runOpt.get();
             if (!Objects.equals(run.getHost(), host)) {
                 log.debug("Host {} lost lock on run {}", host, run.getRunId());
                 return;
@@ -407,22 +392,22 @@ public class Engine {
             try {
                 log.debug("Starting run {}", run.getRunId());
                 executor.run();
-                Run completed = complete(run, context.getMessage());
-                if (completed == null) {
+                Optional<Run> completed = complete(run, context.getMessage());
+                if (!completed.isPresent()) {
                     log.error("No run with id {} found!", r.getRunId());
                     return;
                 }
-                if (completed.getStatus() != Run.Status.COMPLETE) {
+                if (completed.get().getStatus() != Run.Status.COMPLETE) {
                     log.error("Failed to mark run with id {} as COMPLETED", r.getRunId());
                 }
             } catch (Throwable e) {
                 String reason = getFailReason(run);
                 Run failed = failed(run, reason);
-//                if (run.isRestartOnFail()) {
-//                    rescheduleRuns(Collections.singletonList(failed));
-//                } else {
-                activeRunsRepository.tryUpdate(failed);
-//                }
+                if (run.isRestartOnFail()) {
+                    rescheduleRuns(Collections.singletonList(failed));
+                } else {
+                    activeRunsRepository.tryUpdate(failed);
+                }
                 if (e instanceof Exception) {
                     log.error(reason, e);
                 } else {

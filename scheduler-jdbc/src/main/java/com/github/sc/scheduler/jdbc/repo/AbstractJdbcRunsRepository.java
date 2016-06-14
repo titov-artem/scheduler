@@ -54,6 +54,7 @@ public abstract class AbstractJdbcRunsRepository implements RunsRepository {
                     .withEndTime(SqlDateUtils.toInstant(rs.getTimestamp(SQLSchema.END_TIME.getName())))
                     .withMessage(rs.getString(SQLSchema.MESSAGE.getName()))
                     .withVersion(rs.getInt(SQLSchema.VERSION.getName()))
+                    .withModToken(rs.getString(SQLSchema.MOD_TOKEN.getName()))
                     .build();
 
 
@@ -129,12 +130,13 @@ public abstract class AbstractJdbcRunsRepository implements RunsRepository {
                 .set(SQLSchema.RESTART_ON_FAIL, run.isRestartOnFail())
                 .set(SQLSchema.RESTART_ON_REBOOT, run.isRestartOnReboot())
                 .set(SQLSchema.MESSAGE, run.getMessage())
-                .set(SQLSchema.VERSION, run.getVersion());
+                .set(SQLSchema.VERSION, run.getVersion())
+                .set(SQLSchema.MOD_TOKEN, run.getModToken());
         PreparedStatementCreatorFactory pscf = new PreparedStatementCreatorFactory(query.getSQL(),
                 Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 Types.TIMESTAMP, Types.TIMESTAMP, Types.VARCHAR, Types.TIMESTAMP, Types.TIMESTAMP, Types.TIMESTAMP,
                 Types.BOOLEAN, Types.BOOLEAN,
-                Types.VARCHAR, Types.INTEGER);
+                Types.VARCHAR, Types.INTEGER, Types.VARCHAR);
         pscf.setReturnGeneratedKeys(true);
         PreparedStatementCreator psc = pscf.newPreparedStatementCreator(query.getBindValues());
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -171,6 +173,7 @@ public abstract class AbstractJdbcRunsRepository implements RunsRepository {
                     .set(SQLSchema.RESTART_ON_REBOOT, run.isRestartOnReboot())
                     .set(SQLSchema.MESSAGE, run.getMessage())
                     .set(SQLSchema.VERSION, run.getVersion())
+                    .set(SQLSchema.MOD_TOKEN, run.getModToken())
                     .onDuplicateKeyIgnore();
 
             params.add(query.getBindValues().toArray());
@@ -181,9 +184,9 @@ public abstract class AbstractJdbcRunsRepository implements RunsRepository {
         }
     }
 
-    @Nullable
     @Override
-    public Run tryUpdate(Run run) {
+    public Optional<Run> tryUpdate(Run run) {
+        String newModToken = UUID.randomUUID().toString();
         Query query = DSL().update(getRunsTable())
                 .set(SQLSchema.TASK_ID, run.getTaskId())
                 .set(SQLSchema.WEIGHT, run.getEngineRequirements().getWeight())
@@ -200,10 +203,18 @@ public abstract class AbstractJdbcRunsRepository implements RunsRepository {
                 .set(SQLSchema.RESTART_ON_REBOOT, run.isRestartOnReboot())
                 .set(SQLSchema.MESSAGE, run.getMessage())
                 .set(SQLSchema.VERSION, run.getVersion() + 1)
+                .set(SQLSchema.MOD_TOKEN, newModToken)
                 .where(SQLSchema.RUN_ID.eq(run.getRunId()))
-                .and(SQLSchema.VERSION.eq(run.getVersion()));
+                .and(SQLSchema.VERSION.eq(run.getVersion()))
+                .and(SQLSchema.MOD_TOKEN.eq(run.getModToken()));
         jdbcOperations.update(query.getSQL(), query.getBindValues().toArray());
-        return getInternal(run.getRunId());
+
+        Run after = getInternal(run.getRunId());
+        if (after == null || !newModToken.equals(after.getModToken())) {
+            return Optional.empty();
+        }
+
+        return Optional.of(after);
     }
 
     @Override

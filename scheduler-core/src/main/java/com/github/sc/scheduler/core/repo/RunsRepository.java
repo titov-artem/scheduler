@@ -3,7 +3,6 @@ package com.github.sc.scheduler.core.repo;
 import com.github.sc.scheduler.core.model.Run;
 import com.google.common.collect.Multimap;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -55,15 +54,13 @@ public interface RunsRepository {
     void createIfNotExists(Collection<Run> runs);
 
     /**
-     * Trying to update run into repository. If versions match than update will be successful and
-     * updated entity will be returned, otherwise new actual entity will be returned. If no run with
-     * such id found, then {@code null} will be returned
+     * Trying to update run into repository. If mod token match than update will be successful and
+     * updated entity will be returned, otherwise nothing will be returned
      *
      * @param run run to updated
-     * @return actual entity, updated entity or null
+     * @return updated entry or empty
      */
-    @Nullable
-    Run tryUpdate(Run run);
+    Optional<Run> tryUpdate(Run run);
 
     /**
      * Remove all specified runs basing on run id. If any run willn't be found, nothing will happened

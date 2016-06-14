@@ -97,7 +97,7 @@ public class InMemoryRunsRepository implements RunsRepository {
     }
 
     @Override
-    public Run tryUpdate(Run run) {
+    public Optional<Run> tryUpdate(Run run) {
         RunContainer container = data.get(run.getRunId());
         if (container == null) return null;
 
@@ -113,7 +113,7 @@ public class InMemoryRunsRepository implements RunsRepository {
         } finally {
             container.lock.unlock();
         }
-        return out;
+        return Optional.ofNullable(out);
     }
 
     @Override

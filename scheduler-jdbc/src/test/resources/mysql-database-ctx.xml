@@ -4,6 +4,8 @@
        xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd">
 
+    <bean id="clock" class="java.time.Clock" factory-method="systemUTC"/>
+
     <bean id="jdbcOperations" class="org.springframework.jdbc.core.JdbcTemplate" depends-on="flywayInit">
         <constructor-arg ref="dataSource"/>
     </bean>

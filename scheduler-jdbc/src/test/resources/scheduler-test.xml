@@ -3,6 +3,8 @@
        xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
+    <bean id="clock" class="java.time.Clock" factory-method="systemUTC"/>
+
     <bean id="schedulerHostProvider" class="com.github.sc.scheduler.core.utils.FromPropertySchedulerHostProvider">
         <property name="host" value="localhost"/>
     </bean>
@@ -11,13 +13,14 @@
         <property name="timetableRepository" ref="timetableRepository"/>
         <property name="historyRunsRepository" ref="historyRunsRepository"/>
         <property name="activeRunsRepository" ref="activeRunsRepository"/>
-        <property name="hostProvider" value="schedulerHostProvider"/>
+        <property name="hostProvider" ref="schedulerHostProvider"/>
         <property name="taskRepository" ref="taskRepository"/>
         <property name="engines">
             <list>
                 <ref bean="engine"/>
             </list>
         </property>
+        <property name="clock" ref="clock"/>
         <property name="periodSeconds" value="1"/>
     </bean>
 
@@ -32,6 +35,7 @@
         <property name="activeRunsRepository" ref="activeRunsRepository"/>
         <property name="timetableRepository" ref="timetableRepository"/>
         <property name="hostProvider" ref="schedulerHostProvider"/>
+        <property name="clock" ref="clock"/>
         <property name="service" value="main"/>
         <property name="threadsCount" value="1"/>
         <property name="capacity" value="100"/>

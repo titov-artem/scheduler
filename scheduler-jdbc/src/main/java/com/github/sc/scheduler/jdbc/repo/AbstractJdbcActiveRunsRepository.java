@@ -16,9 +16,11 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 
 import java.sql.Types;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Artem Titov titov.artem.u@yandex.com
@@ -26,6 +28,7 @@ import java.util.List;
 public abstract class AbstractJdbcActiveRunsRepository extends AbstractJdbcRunsRepository implements ActiveRunsRepository {
 
     private TransactionSupport transactionSupport;
+    private Clock clock;
 
     @Override
     public List<Run> getAll() {
@@ -55,7 +58,8 @@ public abstract class AbstractJdbcActiveRunsRepository extends AbstractJdbcRunsR
                 SQLSchema.RESTART_ON_FAIL,
                 SQLSchema.RESTART_ON_REBOOT,
                 SQLSchema.MESSAGE,
-                SQLSchema.VERSION
+                SQLSchema.VERSION,
+                SQLSchema.MOD_TOKEN
         ).select(DSL().select(
                 DSL.val(run.getTaskId()).as(SQLSchema.TASK_ID),
                 DSL.val(run.getEngineRequirements().getWeight()).as(SQLSchema.WEIGHT),
@@ -71,7 +75,8 @@ public abstract class AbstractJdbcActiveRunsRepository extends AbstractJdbcRunsR
                 DSL.val(run.isRestartOnFail()).as(SQLSchema.RESTART_ON_FAIL),
                 DSL.val(run.isRestartOnReboot()).as(SQLSchema.RESTART_ON_REBOOT),
                 DSL.val(run.getMessage()).as(SQLSchema.MESSAGE),
-                DSL.val(run.getVersion()).as(SQLSchema.VERSION)
+                DSL.val(run.getVersion()).as(SQLSchema.VERSION),
+                DSL.val(run.getModToken()).as(SQLSchema.MOD_TOKEN)
                 ).where(
                 DSL().selectCount().from(getRunsTable()).where(SQLSchema.TASK_ID.eq(run.getTaskId())).asField().lt(concurrencyLevel)
                 )
@@ -80,7 +85,7 @@ public abstract class AbstractJdbcActiveRunsRepository extends AbstractJdbcRunsR
                 Types.VARCHAR, Types.INTEGER, Types.VARCHAR, Types.VARCHAR, Types.VARCHAR,
                 Types.TIMESTAMP, Types.TIMESTAMP, Types.VARCHAR, Types.TIMESTAMP, Types.TIMESTAMP, Types.TIMESTAMP,
                 Types.BOOLEAN, Types.BOOLEAN,
-                Types.VARCHAR, Types.INTEGER,
+                Types.VARCHAR, Types.INTEGER, Types.VARCHAR,
                 Types.VARCHAR, Types.INTEGER);
         pscf.setReturnGeneratedKeys(true);
         PreparedStatementCreator psc = pscf.newPreparedStatementCreator(query.getBindValues());
@@ -98,6 +103,25 @@ public abstract class AbstractJdbcActiveRunsRepository extends AbstractJdbcRunsR
     }
 
     @Override
+    public Optional<Run> recreate(Run prototype, int concurrencyLevel) {
+        return transactionSupport.doInTransaction(() -> {
+            Optional<Run> updated = tryUpdate(prototype);
+            if (!updated.isPresent()) {
+                return Optional.empty();
+            }
+            Run run = RunImpl.newRun(prototype)
+                    .withQueuedTime(Instant.now(clock))
+                    .build();
+            List<Run> created = create(run, 1, concurrencyLevel);
+
+            if (created.isEmpty()) {
+                return Optional.empty();
+            }
+            return Optional.of(created.get(0));
+        });
+    }
+
+    @Override
     protected Table<Record> getRunsTable() {
         return SQLSchema.RUNS_TABLE;
     }
@@ -105,5 +129,10 @@ public abstract class AbstractJdbcActiveRunsRepository extends AbstractJdbcRunsR
     @Required
     public void setTransactionSupport(TransactionSupport transactionSupport) {
         this.transactionSupport = transactionSupport;
+    }
+
+    @Required
+    public void setClock(Clock clock) {
+        this.clock = clock;
     }
 }

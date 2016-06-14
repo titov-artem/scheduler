@@ -13,14 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.time.Instant;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
@@ -203,28 +199,29 @@ public abstract class AbstractJdbcActiveRunsRepositoryTest {
     }
 
     @Test
-    public void testTryUpdateWithMatchedVersion() throws Exception {
+    public void testTryUpdateWithMatchedModToken() throws Exception {
         Run run = buildRun();
         Run created = activeRunsRepository.create(run);
         Run patched = RunImpl.builder(created).withStatus(Run.Status.COMPLETE).build();
-        Run updated = activeRunsRepository.tryUpdate(patched);
-        assertThat(updated, is(RunImpl.builder(patched).withVersion(patched.getVersion() + 1).build()));
+        Optional<Run> updated = activeRunsRepository.tryUpdate(patched);
+        assertThat(updated.isPresent(), is(true));
+        assertThat(updated.get().getStatus(), is(Run.Status.COMPLETE));
     }
 
     @Test
-    public void testTryUpdateWithMissedVersion() throws Exception {
+    public void testTryUpdateWithMissedModToken() throws Exception {
         Run run = buildRun();
         Run created = activeRunsRepository.create(run);
-        Run patched = RunImpl.builder(created).withStatus(Run.Status.COMPLETE).withVersion(3).build();
-        Run updated = activeRunsRepository.tryUpdate(patched);
-        assertThat(updated, is(created));
+        Run patched = RunImpl.builder(created).withStatus(Run.Status.COMPLETE).withModToken(UUID.randomUUID().toString()).build();
+        Optional<Run> updated = activeRunsRepository.tryUpdate(patched);
+        assertThat(updated.isPresent(), is(false));
     }
 
     @Test
     public void testTryUpdateWithMissedRun() throws Exception {
         Run run = buildRun();
-        Run updated = activeRunsRepository.tryUpdate(run);
-        assertThat(updated, nullValue());
+        Optional<Run> updated = activeRunsRepository.tryUpdate(run);
+        assertThat(updated.isPresent(), is(false));
     }
 
     @Test

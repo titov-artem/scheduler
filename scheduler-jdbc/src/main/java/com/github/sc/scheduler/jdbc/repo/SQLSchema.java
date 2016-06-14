@@ -34,6 +34,7 @@ final class SQLSchema {
     static final Field<LocalDateTime> PING_TIME = field("ping_time", LocalDateTime.class);
     static final Field<LocalDateTime> END_TIME = field("end_time", LocalDateTime.class);
     static final Field<String> MESSAGE = field("message", String.class);
+    static final Field<String> MOD_TOKEN = field("mod_token", String.class);
 
     /* Engine requirements */
     static final Field<String> SERVICE = field("service", String.class);

@@ -7,6 +7,7 @@ import com.github.sc.scheduler.core.repo.ActiveRunsRepository;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class InMemoryActiveRunsRepository extends InMemoryRunsRepository implements ActiveRunsRepository {
 
@@ -32,6 +33,11 @@ public class InMemoryActiveRunsRepository extends InMemoryRunsRepository impleme
 
     @Override
     public List<Run> create(Run run, int count, int concurrencyLevel) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Optional<Run> recreate(Run prototype, int concurrencyLevel) {
         throw new UnsupportedOperationException();
     }
 }

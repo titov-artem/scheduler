@@ -6,7 +6,8 @@ import javax.annotation.Nullable;
 import java.time.Instant;
 
 /**
- * Single run of the task. Must be created with empty host and status PENDING
+ * Single run of the task. Must be created with empty host and status PENDING. Implementation must correctly
+ * support equals and hash code methods
  *
  * @author Artem Titov titov.artem.u@yandex.com
  */
@@ -87,6 +88,11 @@ public interface Run {
     String getMessage();
 
     int getVersion();
+
+    /**
+     * @return unique token of last success modification operation
+     */
+    String getModToken();
 
     enum Status {
         PENDING, RUNNING, COMPLETE, HANGED, FAILED
