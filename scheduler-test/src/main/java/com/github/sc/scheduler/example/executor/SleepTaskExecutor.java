@@ -1,4 +1,4 @@
-package com.github.sc.scheduler.example;
+package com.github.sc.scheduler.example.executor;
 
 import com.github.sc.scheduler.core.engine.RunContext;
 import com.github.sc.scheduler.core.model.TaskArgs;

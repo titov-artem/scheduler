@@ -4,6 +4,8 @@ import com.github.sc.scheduler.core.model.Run;
 import com.github.sc.scheduler.core.model.TaskArgs;
 
 /**
+ * Contains task args and all inforamtion about task's run
+ *
  * @author Artem Titov titov.artem.u@yandex.com
  */
 public class RunContext {

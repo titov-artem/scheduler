@@ -1,5 +1,7 @@
 package com.github.sc.scheduler.core.engine.executor.lookup;
 
+import com.github.sc.scheduler.core.engine.RunnableTaskExecutor;
+import com.github.sc.scheduler.core.engine.TaskExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -25,14 +27,17 @@ public class SpringContextExecutorLookupService implements ExecutorLookupService
     }
 
     @Override
-    public Optional<Runnable> get(String name) {
+    public Optional<TaskExecutor> get(String name) {
         try {
             Object bean = applicationContext.getBean(name);
-            if (!(bean instanceof Runnable)) {
-                log.warn("Bean {} is not Runnable", name);
-                return Optional.empty();
+            if (bean instanceof TaskExecutor) {
+                return Optional.of((TaskExecutor) bean);
             }
-            return Optional.of((Runnable) bean);
+            if (bean instanceof Runnable) {
+                return Optional.of(new RunnableTaskExecutor((Runnable) bean));
+            }
+
+            log.warn("Bean {} is not Runnable or TaskExecutor", name);
         } catch (NoSuchBeanDefinitionException ignore) {
             log.warn("No bean with name {} found", name);
         } catch (RuntimeException e) {

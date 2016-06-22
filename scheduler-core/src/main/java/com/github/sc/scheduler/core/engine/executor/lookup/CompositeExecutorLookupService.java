@@ -1,5 +1,6 @@
 package com.github.sc.scheduler.core.engine.executor.lookup;
 
+import com.github.sc.scheduler.core.engine.TaskExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,9 +24,9 @@ public class CompositeExecutorLookupService implements ExecutorLookupService {
     }
 
     @Override
-    public Optional<Runnable> get(String name) {
+    public Optional<TaskExecutor> get(String name) {
         for (final ExecutorLookupService service : services) {
-            Optional<Runnable> executor = service.get(name);
+            Optional<TaskExecutor> executor = service.get(name);
             if (executor.isPresent()) {
                 return executor;
             }

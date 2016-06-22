@@ -1,5 +1,7 @@
 package com.github.sc.scheduler.core.engine.executor.lookup;
 
+import com.github.sc.scheduler.core.engine.TaskExecutor;
+
 import java.util.Optional;
 
 /**
@@ -18,6 +20,6 @@ public interface ExecutorLookupService {
      * @param name executor name
      * @return executor if it found by service, or empty otherwise.
      */
-    Optional<Runnable> get(String name);
+    Optional<TaskExecutor> get(String name);
 
 }

@@ -26,7 +26,25 @@
 
     <bean id="engine" class="com.github.sc.scheduler.core.engine.Engine" init-method="start">
         <property name="executorLookupService">
-            <bean class="com.github.sc.scheduler.core.engine.executor.lookup.ByClassNameExecutorLookupService"/>
+            <bean class="com.github.sc.scheduler.core.engine.executor.lookup.CompositeExecutorLookupService">
+                <constructor-arg>
+                    <list>
+                        <bean class="com.github.sc.scheduler.core.engine.executor.lookup.KnownExecutorLookupService">
+                            <constructor-arg>
+                                <map>
+                                    <entry key="sleep">
+                                        <bean class="com.github.sc.scheduler.example.executor.SleepTaskExecutor"/>
+                                    </entry>
+                                    <entry key="fail">
+                                        <bean class="com.github.sc.scheduler.example.executor.RandomFailTaskExecutor"/>
+                                    </entry>
+                                </map>
+                            </constructor-arg>
+                        </bean>
+                        <bean class="com.github.sc.scheduler.core.engine.executor.lookup.ByClassNameExecutorLookupService"/>
+                    </list>
+                </constructor-arg>
+            </bean>
         </property>
         <property name="taskPicker">
             <bean class="com.github.sc.scheduler.core.engine.SimpleInOrderTaskPicker"/>

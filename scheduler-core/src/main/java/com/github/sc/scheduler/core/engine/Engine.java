@@ -253,7 +253,7 @@ public class Engine {
             return false;
         }
         Run acquiredRun = acquiredRunOpt.get();
-        Optional<Runnable> executor = executorLookupService.get(acquiredRun.getEngineRequirements().getExecutor());
+        Optional<TaskExecutor> executor = executorLookupService.get(acquiredRun.getEngineRequirements().getExecutor());
         if (!executor.isPresent()) {
             activeRunsRepository.tryUpdate(failed(acquiredRun, "No executor found"));
             return false;
@@ -265,7 +265,7 @@ public class Engine {
         return true;
     }
 
-    private void start(Run r, Runnable executor, RunContext context) {
+    private void start(Run r, TaskExecutor executor, RunContext context) {
         state.runningTasks.add(new RunFuture(r.getRunId(), executorService.submit(new Runner(r, executor, context))));
     }
 
@@ -357,10 +357,10 @@ public class Engine {
     private final class Runner implements Runnable {
 
         private final Run r;
-        private final Runnable executor;
+        private final TaskExecutor executor;
         private final RunContext context;
 
-        Runner(Run r, Runnable executor, RunContext context) {
+        Runner(Run r, TaskExecutor executor, RunContext context) {
             this.r = r;
             this.executor = executor;
             this.context = context;
@@ -391,7 +391,7 @@ public class Engine {
             RunContext.set(context);
             try {
                 log.debug("Starting run {}", run.getRunId());
-                executor.run();
+                executor.run(context);
                 Optional<Run> completed = complete(run, context.getMessage());
                 if (!completed.isPresent()) {
                     log.error("No run with id {} found!", r.getRunId());
