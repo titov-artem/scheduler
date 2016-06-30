@@ -8,6 +8,7 @@ import com.github.sc.scheduler.core.repo.TaskRepository;
 import com.github.sc.scheduler.core.repo.TimetableRepository;
 import com.github.sc.scheduler.core.utils.LocalTaskScheduler;
 import com.github.sc.scheduler.core.utils.SchedulerHostProvider;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Multimap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,14 +38,66 @@ import static java.util.stream.Collectors.*;
  * <li>remove completed runs from queue to history</li>
  * </ol>
  * Only one {@code RunMaster} is permitted for timetable per host
+ * <p>
+ * <p>
+ * Algorithm description:
+ * <p>
+ * Main loop perform sequentially three steps:
+ * <ol>
+ * <li>
+ * restore - restore two scheduler invariants:
+ * <ul>
+ * <li>each task has it's last run time</li>
+ * <li>task is acquired not more then {@link RunMaster#START_INTERVAL}</li>
+ * </ul>
+ * </li>
+ * <li>start tasks - find tasks to start and for each perform sequentially these operations:
+ * <ol>
+ * <li>acquire lock on task</li>
+ * <li>terminate task start sequence if failed to acquire task lock</li>
+ * <li>create run</li>
+ * <li>update task's {@code lastRunTime}</li>
+ * <li>release lock on task</li>
+ * </ol>
+ * </li>
+ * <li>archive completed - move completed runs from active runs repository to history runs repository,
+ * if run {@code queuedTime} less then it's task {@code lastRunTime}</li>
+ * </ol>
+ * <p>
+ * Proof of thread safety and correctness:
+ * <ol>
+ * <li>
+ * Restoring:
+ * <p>
+ * To maintain first invariant RunMaster look up task's runs in active runs repository. It's enough to scan
+ * only active runs repository, because if RunMaster fails between run creation and updating task, run won't
+ * be archived until it's {@code queuedTime} greater task's {@code lastRunTime}
+ * <p>
+ * To maintain second invariant scheduler release all task's locks after {@link RunMaster#START_INTERVAL}
+ * </li>
+ * <li>
+ * Task starting:
+ * <p>
+ * To prevent creation of runs from two instances scheduler acquire lock on {@link RunMaster#START_INTERVAL}, so
+ * another instance won't be able to acquire this lock for this time and create runs
+ * </li>
+ * <li>
+ * Archiving:
+ * <p>
+ * When archiving, RunMaster use {@link HistoryRunsRepository#createIfNotExists(Collection)} method to prevent
+ * duplicate creation
+ * </li>
+ * </ol>
  *
  * @author Artem Titov titov.artem.u@yandex.com
  */
 public class RunMaster implements Runnable {
     /**
-     * Time interval that is given to run master to create task run and store it into repository
+     * Time interval that is given to run master to create task run and store it into repository. If task
+     * acquired more than this interval, RunMaster assume, that host, acquired this task gone away
      */
     public static final Duration START_INTERVAL = Duration.ofMillis(TimeUnit.MINUTES.toMillis(1));
+
     private static final Logger log = LoggerFactory.getLogger(RunMaster.class);
     private static final long DEFAULT_PERIOD_SECONDS = TimeUnit.MINUTES.toSeconds(1);
     /* Dependencies */
@@ -103,21 +156,16 @@ public class RunMaster implements Runnable {
      * Force run master perform task scheduling
      */
     public void touch() {
-        runInternal();
+        runUnsafe();
     }
 
+    @SuppressWarnings("Duplicates")
     @Override
     public void run() {
-        runInternal();
-    }
-
-    private void runInternal() {
         try {
             if (runLock.tryLock(1, TimeUnit.MILLISECONDS)) {
                 try {
-                    restore();
-                    startTasks();
-                    archiveCompletedRuns();
+                    runUnsafe();
                 } finally {
                     runLock.unlock();
                 }
@@ -126,11 +174,22 @@ public class RunMaster implements Runnable {
         }
     }
 
-    private void restore() {
+    @VisibleForTesting
+    protected void runUnsafe() {
+        restore();
+        startTasks();
+        archiveCompletedRuns();
+    }
+
+    @VisibleForTesting
+    protected void restore() {
         restoreLastRunTime();
         restoreStartingHost();
     }
 
+    /**
+     * For all tasks try to find last run and set task's {@code lastRunTime}.
+     */
     private void restoreLastRunTime() {
         List<Task> tasks = taskRepository.getAll();
         Multimap<String, Run> activeRuns = activeRunsRepository.getRuns(
@@ -170,7 +229,8 @@ public class RunMaster implements Runnable {
                 .forEach(this::tryRelease);
     }
 
-    private void startTasks() {
+    @VisibleForTesting
+    protected void startTasks() {
         final Instant now = Instant.now(clock);
         // load time table
         log.info("Run master begin task starting at {}", now);
@@ -237,16 +297,37 @@ public class RunMaster implements Runnable {
                 .build());
     }
 
-    private void archiveCompletedRuns() {
+    @VisibleForTesting
+    protected void archiveCompletedRuns() {
+        // todo maybe recreate failed and hanged runs when archiving. It looks like we can
+        // todo avoid transactions if we will do it here
         List<Run> runs = activeRunsRepository.getAll();
-        List<Run> completedRuns = runs.stream()
+        Map<String, Task> taskById = taskRepository.getAll().stream().collect(toMap(Task::getId, t -> t));
+
+        List<Run> archivableRuns = runs.stream()
                 .filter(r -> r.getEndTime() != null)
+                .filter(r -> {
+                    Task task = taskById.get(r.getTaskId());
+                    if (task == null) {
+                        // if there no tasks in scheduler for this run anymore, we can safely archive it
+                        return true;
+                    }
+                    Instant lastRunTime = task.getLastRunTime();
+                    if (lastRunTime == null) {
+                        // if lastRunTime is null, but run exists, it means, that starting it instance fails and
+                        // this run is still necessary for task's lastRunTime restoring
+                        return false;
+                    }
+                    // if run queuedTime is not before task's lastRunTime it also means that run necessary for
+                    // restoring
+                    return r.getQueuedTime().isBefore(lastRunTime);
+                })
                 .collect(toList());
-        log.trace("Ready to archive {} completed runs: {}", completedRuns.size(), completedRuns.stream().map(Run::getRunId).collect(toList()));
-        historyRunsRepository.createIfNotExists(completedRuns);
+        log.trace("Ready to archive {} completed runs: {}", archivableRuns.size(), archivableRuns.stream().map(Run::getRunId).collect(toList()));
+        historyRunsRepository.createIfNotExists(archivableRuns);
         log.trace("Ready to remove completed runs");
-        activeRunsRepository.remove(completedRuns);
-        log.info("Archived {} completed runs", completedRuns.size());
+        activeRunsRepository.remove(archivableRuns);
+        log.info("Archived {} completed runs", archivableRuns.size());
     }
 
     /* Utility methods */

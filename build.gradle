@@ -8,6 +8,7 @@ repositories {
 
 subprojects {
     apply plugin: 'java'
+    apply plugin: 'groovy'
 
     sourceCompatibility = 1.8
     targetCompatibility = 1.8
@@ -44,6 +45,9 @@ subprojects {
         compile 'org.springframework:spring-context:4.1.6.RELEASE'
 
         testCompile 'junit:junit:4.12'
+        testCompile 'org.codehaus.groovy:groovy-all:2.4.3'
+        testCompile 'org.spockframework:spock-unitils:1.0-groovy-2.4'
+        testCompile 'org.mockito:mockito-core:1.10.19'
         testCompile 'org.slf4j:jcl-over-slf4j:1.7.12'
         testCompile 'ch.qos.logback:logback-classic:1.1.2'
     }

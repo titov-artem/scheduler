@@ -197,7 +197,7 @@ public class Engine {
     }
 
     /**
-     * Remove host and acquired time for runs with expired START_INTERVAL
+     * Remove host and acquired time for runs with expired START_MULTIPLIER
      */
     private void freeOrphanedAcquiredRuns() {
         Instant now = Instant.now(clock);
