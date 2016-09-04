@@ -388,7 +388,6 @@ public class Engine {
                 log.error("Failed to mark run with id {} as RUNNING", r.getRunId());
                 return;
             }
-            RunContext.set(context);
             try {
                 log.debug("Starting run {}", run.getRunId());
                 executor.run(context);
@@ -415,7 +414,6 @@ public class Engine {
                     throw Throwables.propagate(e);
                 }
             } finally {
-                RunContext.clear();
                 state.free(run);
             }
         }

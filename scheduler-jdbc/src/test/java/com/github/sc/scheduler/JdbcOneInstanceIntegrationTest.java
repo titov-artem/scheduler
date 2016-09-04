@@ -3,6 +3,7 @@ package com.github.sc.scheduler;
 import com.github.sc.scheduler.core.RunMaster;
 import com.github.sc.scheduler.core.engine.Engine;
 import com.github.sc.scheduler.core.engine.RunContext;
+import com.github.sc.scheduler.core.engine.TaskExecutor;
 import com.github.sc.scheduler.core.model.*;
 import com.github.sc.scheduler.core.repo.HistoryRunsRepository;
 import com.github.sc.scheduler.core.repo.TaskArgsRepository;
@@ -62,12 +63,12 @@ public class JdbcOneInstanceIntegrationTest {
         }
     }
 
-    public static final class SimpleExecutor implements Runnable {
+    public static final class SimpleExecutor implements TaskExecutor {
 
         @Override
-        public void run() {
-            TaskArgs taskArgs = RunContext.get().getTaskArgs();
-            Run run = RunContext.get().getRun();
+        public void run(RunContext context) {
+            TaskArgs taskArgs = context.getTaskArgs();
+            Run run = context.getRun();
 
             System.out.printf("Task params %s were executed in run %d with task %s%n",
                     taskArgs.get("name"), run.getRunId(), run.getTaskId());

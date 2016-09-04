@@ -1,6 +1,7 @@
 package com.github.sc.scheduler.example.executor;
 
 import com.github.sc.scheduler.core.engine.RunContext;
+import com.github.sc.scheduler.core.engine.TaskExecutor;
 import com.github.sc.scheduler.core.model.TaskArgs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,13 +12,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author Artem Titov titov.artem.u@yandex.com
  */
-public class SleepTaskExecutor implements Runnable {
+public class SleepTaskExecutor implements TaskExecutor {
 
     private static final Logger log = LoggerFactory.getLogger(SleepTaskExecutor.class);
 
     @Override
-    public void run() {
-        RunContext context = RunContext.get();
+    public void run(RunContext context) {
         String taskId = context.getRun().getTaskId();
         TaskArgs taskArgs = context.getTaskArgs();
         int sleepTime = Integer.parseInt(taskArgs.get("time"));

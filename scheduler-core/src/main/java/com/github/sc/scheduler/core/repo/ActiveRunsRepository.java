@@ -22,6 +22,16 @@ public interface ActiveRunsRepository extends RunsRepository {
 
     void ping(long runId, Instant pingTime);
 
+    /**
+     * Create not more than {@code count} runs, using {@code run} as prototype
+     * and not violates constraint, that count of run for this task is less than
+     * or equal {@code concurrencyLevel}
+     *
+     * @param run
+     * @param count
+     * @param concurrencyLevel
+     * @return
+     */
     List<Run> create(Run run, int count, int concurrencyLevel);
 
     /**
