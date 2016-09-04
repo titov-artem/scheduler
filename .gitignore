@@ -75,3 +75,7 @@ hs_err_pid*
 ### Other
 
 *.iml
+
+*.DS_Store
+
+classes
