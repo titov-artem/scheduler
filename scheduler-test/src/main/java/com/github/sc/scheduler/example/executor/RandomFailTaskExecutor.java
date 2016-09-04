@@ -1,5 +1,7 @@
 package com.github.sc.scheduler.example.executor;
 
+import com.github.sc.scheduler.core.engine.RunContext;
+
 import java.util.Random;
 
 /**
@@ -8,8 +10,8 @@ import java.util.Random;
 public class RandomFailTaskExecutor extends SleepTaskExecutor {
 
     @Override
-    public void run() {
+    public void run(RunContext context) {
         if (new Random().nextInt(100) < 50) throw new RuntimeException();
-        super.run();
+        super.run(context);
     }
 }

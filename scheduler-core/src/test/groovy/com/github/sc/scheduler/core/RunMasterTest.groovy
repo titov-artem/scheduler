@@ -78,6 +78,8 @@ class RunMasterTest extends Specification {
         when:
         master.restore()
 
+        then:
+        1 == 1
 //        then:
 //        taskRepository.
     }

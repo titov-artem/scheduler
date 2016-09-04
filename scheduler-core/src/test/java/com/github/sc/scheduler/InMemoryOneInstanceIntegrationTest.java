@@ -1,10 +1,7 @@
 package com.github.sc.scheduler;
 
 import com.github.sc.scheduler.core.RunMaster;
-import com.github.sc.scheduler.core.engine.Engine;
-import com.github.sc.scheduler.core.engine.RunContext;
-import com.github.sc.scheduler.core.engine.SimpleInOrderTaskPicker;
-import com.github.sc.scheduler.core.engine.TaskPicker;
+import com.github.sc.scheduler.core.engine.*;
 import com.github.sc.scheduler.core.engine.executor.lookup.ByClassNameExecutorLookupService;
 import com.github.sc.scheduler.core.engine.executor.lookup.ExecutorLookupService;
 import com.github.sc.scheduler.core.model.*;
@@ -78,12 +75,12 @@ public class InMemoryOneInstanceIntegrationTest {
         engine.destroy();
     }
 
-    public static final class SimpleExecutor implements Runnable {
+    public static final class SimpleExecutor implements TaskExecutor {
 
         @Override
-        public void run() {
-            TaskArgs taskArgs = RunContext.get().getTaskArgs();
-            Run run = RunContext.get().getRun();
+        public void run(RunContext context) {
+            TaskArgs taskArgs = context.getTaskArgs();
+            Run run = context.getRun();
 
             System.out.printf("Task params %s were executed in run %d with task %s%n",
                     taskArgs.get("name"), run.getRunId(), run.getTaskId());

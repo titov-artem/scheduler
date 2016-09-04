@@ -6,7 +6,7 @@
     <bean id="clock" class="java.time.Clock" factory-method="systemDefaultZone"/>
 
     <bean id="schedulerHostProvider" class="com.github.sc.scheduler.core.utils.FromPropertySchedulerHostProvider">
-        <property name="host" value="${scheduler.host}"/>
+        <property name="host" value="${com.github.sc.scheduler.host}"/>
     </bean>
 
     <bean id="runMaster" class="com.github.sc.scheduler.core.RunMaster" init-method="start">
@@ -21,7 +21,7 @@
             </list>
         </property>
         <property name="clock" ref="clock"/>
-        <property name="periodSeconds" value="${scheduler.master.periodSeconds}"/>
+        <property name="periodSeconds" value="${com.github.sc.scheduler.master.periodSeconds}"/>
     </bean>
 
     <bean id="engine" class="com.github.sc.scheduler.core.engine.Engine" init-method="start">
@@ -54,10 +54,10 @@
         <property name="timetableRepository" ref="timetableRepository"/>
         <property name="hostProvider" ref="schedulerHostProvider"/>
         <property name="clock" ref="clock"/>
-        <property name="service" value="${scheduler.engine.service}"/>
-        <property name="threadsCount" value="${scheduler.engine.threads}"/>
-        <property name="capacity" value="${scheduler.engine.capacity}"/>
-        <property name="pickPeriodSeconds" value="${scheduler.engine.periodSeconds}"/>
+        <property name="service" value="${com.github.sc.scheduler.engine.service}"/>
+        <property name="threadsCount" value="${com.github.sc.scheduler.engine.threads}"/>
+        <property name="capacity" value="${com.github.sc.scheduler.engine.capacity}"/>
+        <property name="pickPeriodSeconds" value="${com.github.sc.scheduler.engine.periodSeconds}"/>
     </bean>
 
     <bean id="taskService" class="com.github.sc.scheduler.core.service.impl.TaskServiceImpl">
